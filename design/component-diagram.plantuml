@@ -1,0 +1,16 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.3.0/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.3.0/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.3.0/C4_Component.puml
+
+Component(gui_component, "gui", "Rust namespace with structs", "Main program loop containing a graphical user interface. Handles user input and simulation controls (change speed/reset/specify parameters)")
+Component(statistics_component, "statistics", "Rust namespace with structs", "Collects information about the simulation and records the data in an export file")
+Component(sim_component, "sim", "Rust namespace with structs", "Simulates a world containing entities with different rules")
+Component(gfx_component, "gfx", "Rust namespace with structs", "Draws the simulation state on a graphical view")
+
+Rel(gui_component, sim_component, "Uses")
+Rel(gui_component, gfx_component, "Uses")
+Rel(gui_component, statistics_component, "Uses")
+
+@enduml
