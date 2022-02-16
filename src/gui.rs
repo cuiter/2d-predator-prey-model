@@ -1,4 +1,4 @@
-use crate::gfx::{draw_model, View, DEFAULT_SCALE};
+use crate::gfx::{draw_model, View};
 use crate::model::{Model, ModelParams};
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
@@ -10,17 +10,54 @@ use sdl2::{
     video::Window,
 };
 
-struct TimeControl {
-    pub ticks_per_second: f32,
-    pub running: bool,
+struct TimeController {
+    ticks_per_second: f32,
+    running: bool,
+    leftover_seconds: f32,
 }
 
-impl TimeControl {
-    pub fn default() -> TimeControl {
-        TimeControl {
+impl TimeController {
+    pub fn default() -> TimeController {
+        TimeController {
             ticks_per_second: 1.0,
             running: true,
+            leftover_seconds: 0.0,
         }
+    }
+
+    /// Returns the number of times model.tick() should be invoked.
+    pub fn tick(&mut self, d_time: f32) -> u32 {
+        if self.running {
+            self.leftover_seconds += d_time;
+
+            let mut ticks = 0u32;
+            while self.leftover_seconds >= (1.0 / self.ticks_per_second) {
+                ticks += 1;
+                self.leftover_seconds -= 1.0 / self.ticks_per_second;
+            }
+
+            ticks
+        } else {
+            0
+        }
+    }
+
+    pub fn toggle_paused(&mut self) {
+        self.running = !self.running;
+
+        if self.running {
+            println!("model resumed");
+        } else {
+            println!("model paused");
+        }
+    }
+
+    pub fn increase_speed(&mut self) {
+        self.ticks_per_second *= 2.0;
+    }
+
+    pub fn decrease_speed(&mut self) {
+        self.ticks_per_second /= 2.0;
     }
 }
 
@@ -29,16 +66,10 @@ const WINDOW_SIZE: Size = Size::new(800, 600);
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
-pub fn main_loop(params: ModelParams) {
-    let mut model = Model::new(params);
-    let mut time_control = TimeControl::default();
-    let mut view = View {
-        midpoint: Point::new(
-            model.get_grid_size().w as i32 / 2,
-            model.get_grid_size().h as i32 / 2,
-        ),
-        scale: DEFAULT_SCALE,
-    };
+pub fn main_loop(params: &ModelParams) {
+    let mut model = Model::new(params.clone());
+    let mut time_controller = TimeController::default();
+    let mut view = View::default(model.get_grid_size());
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -80,28 +111,22 @@ pub fn main_loop(params: ModelParams) {
                     ..
                 } => {
                     if scancode == Scancode::R {
-                        //world = World::new(&params);
-                    } else if scancode == Scancode::T {
-                        //time_controller.goto_prompt(params, &mut world);
-                    } else {
-                        //view.key_down(scancode);
+                        model = Model::new(params.clone());
+                    } else if scancode == Scancode::Space {
+                        time_controller.toggle_paused();
+                    } else if scancode == Scancode::Comma {
+                        time_controller.decrease_speed();
+                    } else if scancode == Scancode::Period {
+                        time_controller.increase_speed();
                     }
-                }
-
-                Event::KeyUp {
-                    scancode: Some(scancode),
-                    ..
-                } => {
-                    //view.key_up(scancode);
                 }
 
                 Event::MouseWheel { y, .. } => {
-                    if (y < 0 && view.scale > 1) {
-                        view.scale /= 2;
+                    if (y < 0) {
+                        view.decrease_scale();
                     } else if (y > 0) {
-                        view.scale *= 2;
+                        view.increase_scale();
                     }
-                    //view.change_zoom(y as f32);
                 }
 
                 _ => {}
@@ -113,11 +138,11 @@ pub fn main_loop(params: ModelParams) {
         // Clamp d_time between 1 nanosecond and 1 second to prevent divide by zero and runaway.
         let d_time: f32 = raw_d_time.clamp(1e-9f32, 1.0);
 
-        //view.tick(d_time);
+        let ticks = time_controller.tick(d_time);
 
-        /*if !view.paused {
-            time_controller.tick(params, &mut world, d_time * view.time_factor);
-        }*/
+        for i in 0..ticks {
+            model.tick();
+        }
 
         draw_model(&mut canvas, &model, &view);
         canvas.present();

@@ -7,5 +7,6 @@ mod util;
 extern crate sdl2;
 
 fn main() {
-    gui::main_loop(model::ModelParams::default());
+    println!("\nsimulation controls:\n  R: restart\n  ,/.: decrease/increase speed\n  scroll wheel: decrease/increase scale\n  space: toggle pause/resume\n");
+    gui::main_loop(&model::ModelParams::default());
 }

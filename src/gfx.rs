@@ -11,7 +11,24 @@ pub struct View {
     pub midpoint: Point,
     pub scale: u32,
 }
-pub const DEFAULT_SCALE: u32 = 8;
+impl View {
+    pub fn default(grid_size: Size) -> View {
+        View {
+            midpoint: Point::new(grid_size.w as i32 / 2, grid_size.h as i32 / 2),
+            scale: 8,
+        }
+    }
+
+    pub fn increase_scale(&mut self) {
+        self.scale *= 2;
+    }
+
+    pub fn decrease_scale(&mut self) {
+        if self.scale > 1 {
+            self.scale /= 2;
+        }
+    }
+}
 
 const BACKGROUND_COLOR: Color = Color::RGBA(100, 100, 100, 255);
 const CELL_EMPTY_COLOR: Color = Color::RGBA(220, 220, 220, 255);

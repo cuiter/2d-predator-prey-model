@@ -32,6 +32,7 @@ pub struct Model {
     params: ModelParams,
 }
 
+#[derive(Clone)]
 pub struct ModelParams {
     pub grid_size: Size,
     pub n_plants: u32,
@@ -41,21 +42,21 @@ pub struct ModelParams {
     pub birth_energy_units: u8,
     pub food_energy_units: u8,
     pub max_energy_units: u8,
-    pub random_seed: u64,
+    pub random_seed: Option<u64>,
 }
 
 impl ModelParams {
     pub fn default() -> ModelParams {
         ModelParams {
             grid_size: Size::new(40, 40),
-            n_plants: 40,
+            n_plants: 80,
             n_herbivores: 60,
-            n_carnivores: 60,
+            n_carnivores: 10,
             ticks_to_reproduce: 20,
             birth_energy_units: 10,
             food_energy_units: 8,
             max_energy_units: 8,
-            random_seed: time_ns() as u64,
+            random_seed: None,
         }
     }
 }
@@ -72,7 +73,7 @@ impl Model {
     }
 
     fn populate(&mut self) {
-        let mut rng = Pcg32::seed_from_u64(self.params.random_seed);
+        let mut rng = Pcg32::seed_from_u64(self.params.random_seed.unwrap_or(time_ns() as u64));
 
         let mut n_plants = 0;
         while n_plants < self.params.n_plants {
@@ -116,7 +117,11 @@ impl Model {
         }
     }
 
-    pub fn tick() {}
+    pub fn tick(&mut self) {
+        println!("tick");
+
+        // Write model update code here
+    }
 
     #[inline]
     pub fn get_cell_at(&self, x: u32, y: u32) -> &Cell {
