@@ -1,43 +1,38 @@
-use crate::util::{Size, time_ns};
-use rand_pcg::Pcg32;
+use crate::util::{time_ns, Size};
 use rand::{Rng, SeedableRng};
+use rand_pcg::Pcg32;
 
 #[derive(Clone, PartialEq)]
-pub enum Cell
-{
+pub enum Cell {
     Empty,
     Plant,
     Herbivore(AnimalState),
-    Carnivore(AnimalState)
+    Carnivore(AnimalState),
 }
 
 #[derive(Clone, PartialEq)]
-pub struct AnimalState
-{
-    pub age: u32, // number of ticks since birth
+pub struct AnimalState {
+    pub age: u32,      // number of ticks since birth
     pub direction: u8, // 8-way direction, counter-clockwise, starting at 0 = right
-    pub energy: u8, // energy
+    pub energy: u8,    // energy
 }
 
-impl AnimalState
-{
+impl AnimalState {
     pub fn new(rng: &mut Pcg32, initial_energy: u8) -> AnimalState {
         AnimalState {
             age: 0,
             direction: rng.gen_range(0, 8),
-            energy: initial_energy
+            energy: initial_energy,
         }
     }
 }
 
-pub struct Model
-{
+pub struct Model {
     cells: Vec<Cell>,
-    params: ModelParams
+    params: ModelParams,
 }
 
-pub struct ModelParams
-{
+pub struct ModelParams {
     pub grid_size: Size,
     pub n_plants: u32,
     pub n_herbivores: u32,
@@ -49,11 +44,9 @@ pub struct ModelParams
     pub random_seed: u64,
 }
 
-impl ModelParams
-{
+impl ModelParams {
     pub fn default() -> ModelParams {
-        ModelParams
-        {
+        ModelParams {
             grid_size: Size::new(40, 40),
             n_plants: 40,
             n_herbivores: 60,
@@ -62,7 +55,7 @@ impl ModelParams
             birth_energy_units: 10,
             food_energy_units: 8,
             max_energy_units: 8,
-            random_seed: time_ns() as u64
+            random_seed: time_ns() as u64,
         }
     }
 }
@@ -71,10 +64,7 @@ impl Model {
     pub fn new(params: ModelParams) -> Model {
         let cells = vec![Cell::Empty; params.grid_size.w as usize * params.grid_size.h as usize];
 
-        let mut model = Model {
-            cells,
-            params
-        };
+        let mut model = Model { cells, params };
 
         model.populate();
 
@@ -101,7 +91,11 @@ impl Model {
             let new_y = rng.gen_range(0, self.get_grid_size().h);
 
             if self.get_cell_at(new_x, new_y) == &Cell::Empty {
-                self.set_cell_at(new_x, new_y, Cell::Carnivore(AnimalState::new(&mut rng, self.params.birth_energy_units)));
+                self.set_cell_at(
+                    new_x,
+                    new_y,
+                    Cell::Carnivore(AnimalState::new(&mut rng, self.params.birth_energy_units)),
+                );
                 n_carnivores += 1;
             }
         }
@@ -112,15 +106,17 @@ impl Model {
             let new_y = rng.gen_range(0, self.get_grid_size().h);
 
             if self.get_cell_at(new_x, new_y) == &Cell::Empty {
-                self.set_cell_at(new_x, new_y, Cell::Herbivore(AnimalState::new(&mut rng, self.params.birth_energy_units)));
+                self.set_cell_at(
+                    new_x,
+                    new_y,
+                    Cell::Herbivore(AnimalState::new(&mut rng, self.params.birth_energy_units)),
+                );
                 n_herbivores += 1;
             }
         }
     }
 
-    pub fn tick() {
-
-    }
+    pub fn tick() {}
 
     #[inline]
     pub fn get_cell_at(&self, x: u32, y: u32) -> &Cell {

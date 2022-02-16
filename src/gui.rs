@@ -1,3 +1,6 @@
+use crate::gfx::{draw_model, View, DEFAULT_SCALE};
+use crate::model::{Model, ModelParams};
+use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;
 use sdl2::{
@@ -6,38 +9,36 @@ use sdl2::{
     render::Canvas,
     video::Window,
 };
-use crate::util::{Size, time_ns};
-use crate::model::{ModelParams, Model};
-use crate::gfx::{View, draw_model};
 
-struct TimeControl
-{
+struct TimeControl {
     pub ticks_per_second: f32,
-    pub running: bool
+    pub running: bool,
 }
 
-impl TimeControl
-{
+impl TimeControl {
     pub fn default() -> TimeControl {
         TimeControl {
             ticks_per_second: 1.0,
-            running: true
+            running: true,
         }
     }
 }
 
 const ENABLE_VSYNC: bool = true;
 const WINDOW_SIZE: Size = Size::new(800, 600);
-const BACKGROUND_COLOR: Color = Color::RGBA(0, 0, 0, 255);
-const DEFAULT_SCALE: u32 = 4;
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
 pub fn main_loop(params: ModelParams) {
     let mut model = Model::new(params);
     let mut time_control = TimeControl::default();
-    let mut view = View { midpoint: Point::new(model.get_grid_size().w as i32 / 2, model.get_grid_size().h as i32 / 2),
-                          scale: DEFAULT_SCALE };
+    let mut view = View {
+        midpoint: Point::new(
+            model.get_grid_size().w as i32 / 2,
+            model.get_grid_size().h as i32 / 2,
+        ),
+        scale: DEFAULT_SCALE,
+    };
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
