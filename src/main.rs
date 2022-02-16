@@ -1,7 +1,6 @@
 mod gfx;
 mod gui;
 mod model;
-mod stats;
 mod util;
 
 extern crate sdl2;

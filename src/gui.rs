@@ -3,13 +3,8 @@ use crate::model::{Model, ModelParams};
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;
-use sdl2::{
-    pixels::Color,
-    rect::{Point, Rect},
-    render::Canvas,
-    video::Window,
-};
 
+/// Controls the time aspect of the simulation, e.g. how fast the simulation should run, whether the simulation is paused or not.
 struct TimeController {
     ticks_per_second: f32,
     running: bool,
@@ -25,10 +20,10 @@ impl TimeController {
         }
     }
 
-    /// Returns the number of times model.tick() should be invoked.
-    pub fn tick(&mut self, d_time: f32) -> u32 {
+    /// Updates the time and returns the number of times model.tick() should be called in this frame.
+    pub fn tick(&mut self, seconds_elapsed: f32) -> u32 {
         if self.running {
-            self.leftover_seconds += d_time;
+            self.leftover_seconds += seconds_elapsed;
 
             let mut ticks = 0u32;
             while self.leftover_seconds >= (1.0 / self.ticks_per_second) {
@@ -100,8 +95,8 @@ pub fn main_loop(params: &ModelParams) {
                 }
 
                 Event::Window { win_event, .. } => match win_event {
-                    WindowEvent::SizeChanged(width, height) => {
-                        // Note: This may be used in later optimizations.
+                    WindowEvent::SizeChanged(_width, _height) => {
+                        // Note: Window size may be used for later optimizations when using large grid sizes.
                     }
                     _ => {}
                 },
@@ -122,9 +117,9 @@ pub fn main_loop(params: &ModelParams) {
                 }
 
                 Event::MouseWheel { y, .. } => {
-                    if (y < 0) {
+                    if y < 0 {
                         view.decrease_scale();
-                    } else if (y > 0) {
+                    } else if y > 0 {
                         view.increase_scale();
                     }
                 }
@@ -134,13 +129,12 @@ pub fn main_loop(params: &ModelParams) {
         }
 
         let cur_nano_time = time_ns();
-        let raw_d_time: f32 = (cur_nano_time - prev_nano_time) as f32 / 1e9f32;
-        // Clamp d_time between 1 nanosecond and 1 second to prevent divide by zero and runaway.
-        let d_time: f32 = raw_d_time.clamp(1e-9f32, 1.0);
+        let raw_seconds_elapsed: f32 = (cur_nano_time - prev_nano_time) as f32 / 1e9f32;
+        // Clamp the elapsed time in this frame between 1 nanosecond and 1 second to prevent divide by zero and runaway.
+        let seconds_elapsed: f32 = raw_seconds_elapsed.clamp(1e-9f32, 1.0);
 
-        let ticks = time_controller.tick(d_time);
-
-        for i in 0..ticks {
+        let ticks = time_controller.tick(seconds_elapsed);
+        for _ in 0..ticks {
             model.tick();
         }
 

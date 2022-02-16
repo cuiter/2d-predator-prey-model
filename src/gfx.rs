@@ -7,9 +7,10 @@ use sdl2::{
     video::Window,
 };
 
+/// Represents a viewport for drawing the model's cells onto a canvas
 pub struct View {
-    pub midpoint: Point,
-    pub scale: u32,
+    pub midpoint: Point, // position of the cell that is drawn in the middle of the screen
+    pub scale: u32,      // pixels per cell
 }
 impl View {
     pub fn default(grid_size: Size) -> View {
@@ -36,8 +37,7 @@ const CELL_PLANT_COLOR: Color = Color::RGBA(20, 180, 20, 255);
 const CELL_HERBIVORE_COLOR: Color = Color::RGBA(100, 40, 30, 255);
 const CELL_CARNIVORE_COLOR: Color = Color::RGBA(200, 90, 10, 255);
 const GRID_DIVIDER_COLOR: Color = Color::RGBA(140, 140, 140, 255);
-
-const MIN_SCALE_FOR_GRID_DIVIDER: u32 = 8;
+const MIN_SCALE_FOR_DRAWING_GRID: u32 = 8;
 
 fn model_to_canvas_coord(model_coord: Point, canvas_size: Size, view: &View) -> Point {
     let draw_x = (canvas_size.w / 2) as i32 + (model_coord.x - view.midpoint.x) * view.scale as i32;
@@ -50,7 +50,7 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Model, view: &View) {
     canvas.set_draw_color(BACKGROUND_COLOR);
     canvas.clear();
 
-    // Draw model cells
+    // Draw cells
 
     let grid_size = model.get_grid_size();
     let (canvas_width, canvas_height) = canvas.output_size().unwrap();
@@ -79,24 +79,14 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Model, view: &View) {
         }
     }
 
-    if view.scale >= MIN_SCALE_FOR_GRID_DIVIDER {
+    draw_grid(canvas, canvas_size, grid_size, view);
+}
+
+pub fn draw_grid(canvas: &mut Canvas<Window>, canvas_size: Size, grid_size: Size, view: &View) {
+    if view.scale >= MIN_SCALE_FOR_DRAWING_GRID {
         canvas.set_draw_color(GRID_DIVIDER_COLOR);
 
-        for x in 0..grid_size.w {
-            let start_point = model_to_canvas_coord(Point::new(x as i32, 0), canvas_size, view);
-            let end_point =
-                model_to_canvas_coord(Point::new(x as i32, grid_size.h as i32), canvas_size, view);
-
-            let draw_rect = Rect::new(
-                start_point.x,
-                start_point.y,
-                1,
-                (end_point.y - start_point.y) as u32,
-            );
-
-            canvas.fill_rect(draw_rect).unwrap();
-        }
-
+        // Draw horizontal lines
         for y in 0..grid_size.h {
             let start_point = model_to_canvas_coord(Point::new(0, y as i32), canvas_size, view);
             let end_point =
@@ -107,6 +97,22 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Model, view: &View) {
                 start_point.y,
                 (end_point.x - start_point.x) as u32,
                 1,
+            );
+
+            canvas.fill_rect(draw_rect).unwrap();
+        }
+
+        // Draw vertical lines
+        for x in 0..grid_size.w {
+            let start_point = model_to_canvas_coord(Point::new(x as i32, 0), canvas_size, view);
+            let end_point =
+                model_to_canvas_coord(Point::new(x as i32, grid_size.h as i32), canvas_size, view);
+
+            let draw_rect = Rect::new(
+                start_point.x,
+                start_point.y,
+                1,
+                (end_point.y - start_point.y) as u32,
             );
 
             canvas.fill_rect(draw_rect).unwrap();
