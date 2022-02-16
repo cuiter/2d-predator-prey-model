@@ -23,6 +23,17 @@ Must:
 - Allow the user to control the time aspect of the model at runtime (play/pause/speed)
 - Collect and write model statistics to a file (including #cells per cell type)
 
+# Building and running
+
+Install the following dependencies:
+
+- Rust compiler and `cargo` (https://www.rust-lang.org/)
+- A C toolchain (e.g. MSVC or MinGW on Windows, `build-essential` on Ubuntu)
+- SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
+
+To build and run the program, run the following command at the project root:  
+`cargo run`
+
 # Design
 
 ![](design/component-diagram.png)
