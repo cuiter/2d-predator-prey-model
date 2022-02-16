@@ -6,6 +6,23 @@ Source code and appendices for the course Onderzoeksmethoden voor de Informatica
 
 ![](design/problem-definition.png)
 
+# Requirements
+
+The goal of this program is to do the following:
+
+- Provide a platform for building and simulating a grid-based model of cells.
+- Collect statistics from the simulated model in order to discover useful results.
+
+By splitting these goals up into requirements, the following list can be formed:
+
+Must:
+
+- Provide a platform for building and simulating a grid-based model
+- Allow the user to specify model parameters at the beginning of the simulation
+- Show the current state of the model in a graphical user interface
+- Allow the user to control the time aspect of the model at runtime (play/pause/speed)
+- Collect and write model statistics to a file (including #cells per cell type)
+
 # Design
 
 ![](design/component-diagram.png)
