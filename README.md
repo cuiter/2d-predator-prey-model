@@ -1,12 +1,39 @@
-# uu-onderzoeksmethoden
+# Onderzoeksmethoden
 
 Source code and appendices for the course Onderzoeksmethoden voor de Informatica (B3OMI) at the UU
 
-# Problem definition
+# Building and running
+
+Install the following dependencies:
+
+- Rust compiler and `cargo` (https://www.rust-lang.org/)
+- A C toolchain (e.g. MSVC or MinGW on Windows, `build-essential` on Ubuntu)
+- SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
+
+Run the following command at the project root:  
+`cargo run`
+
+The controls are explained in the program's standard output.
+
+# Screenshots
+
+![](design/screenshot.png)
+
+# Design
+
+The goal of the course is to find a problem that can be expressed in relatively
+simple terms, use a model to simulate the problem, and be able to say something
+interesting about its results.
+
+Because the exact problem definition is not fixed yet, the main goal of the
+design is to provide a platform with which to experiment and compare different
+solutions.
+
+## Problem definition
 
 ![](design/problem-definition.png)
 
-# Requirements
+## Requirements
 
 The goal of this program is to do the following:
 
@@ -23,25 +50,6 @@ Must:
 - Allow the user to control the time aspect of the model at runtime (play/pause/speed)
 - Collect and write model statistics to a file (including #cells per cell type)
 
-# Building and running
-
-Install the following dependencies:
-
-- Rust compiler and `cargo` (https://www.rust-lang.org/)
-- A C toolchain (e.g. MSVC or MinGW on Windows, `build-essential` on Ubuntu)
-- SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
-
-To build and run the program, run the following command at the project root:  
-`cargo run`
-
-# Design
+## Component diagram
 
 ![](design/component-diagram.png)
-
-The goal of the course is to find a problem that can be expressed in relatively
-simple terms, use a model to simulate the problem, and be able to say something
-interesting about its results.
-
-Because the exact problem definition is not fixed yet, the main goal of the
-design is to provide a platform with which to experiment and compare different
-solutions.
