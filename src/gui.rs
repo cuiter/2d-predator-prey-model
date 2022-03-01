@@ -1,5 +1,5 @@
 use crate::gfx::{draw_model, View};
-use crate::model::{Model, ModelParams};
+use crate::models::{Model, ModelParams};
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;

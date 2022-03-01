@@ -1,4 +1,4 @@
-use crate::model::{Cell, Model};
+use crate::models::{Cell, Model};
 use crate::util::Size;
 use sdl2::{
     pixels::Color,

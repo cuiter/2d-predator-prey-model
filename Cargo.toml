@@ -10,3 +10,5 @@ edition = "2018"
 rand = "0.7"
 rand_pcg = "0.2"
 sdl2 = "0.34"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
