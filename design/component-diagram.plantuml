@@ -11,12 +11,14 @@ Component(stats_component, "stats", "Rust module", "Collects information about t
 
 Component(params_component, "params", "Rust module", "Contains model parameter definitions and methods to import parameters from an external file")
 Component(models_component, "models", "Rust module", "Provides the base interface for a predator-prey cellular automata-based model")
+Component(simple_model_component, "simple_model", "Rust module", "An implementation of Human's 'simple model', extended with foodweb relations")
 Component(pppe_model_component, "pppe_model", "Rust module", "An implementation of Human's PPPE model, extended with foodweb relations")
 Component(dsam_model_component, "dsam_model", "Rust module", "An implementation of Human's DSAM model, extended with foodweb relations")
 Component(custom_model_component, "custom_model", "Rust module", "A custom cellular automata model, including foodweb relations")
 
 Rel(main_component, gui_component, "Uses")
 
+Rel(models_component, simple_model_component, "Uses")
 Rel(models_component, pppe_model_component, "Uses")
 Rel(models_component, dsam_model_component, "Uses")
 Rel(models_component, custom_model_component, "Uses")
