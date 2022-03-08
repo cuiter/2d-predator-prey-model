@@ -34,7 +34,7 @@ pub struct ModelParams {
 }
 
 impl ModelParams {
-    // Returns the mapping from specie name -> specie id
+    /// Returns the mapping from specie name -> specie id
     pub fn specie_ids(&self) -> BiMap<String, u32> {
         let mut specie_ids = BiMap::new();
         for (index, specie_name) in self.species.keys().enumerate() {
@@ -42,6 +42,42 @@ impl ModelParams {
         }
 
         specie_ids
+    }
+
+    pub fn specie_id_from_name(&self, specie_name: &str) -> u32 {
+        for (index, name) in self.species.keys().enumerate() {
+            if name == specie_name {
+                return index as u32;
+            }
+        }
+
+        panic!("Could not find specie {}", specie_name)
+    }
+
+    pub fn specie_name_from_id(&self, specie_id: u32) -> &str {
+        for (index, specie_name) in self.species.keys().enumerate() {
+            if index as u32 == specie_id  {
+                return specie_name;
+            }
+        }
+
+        panic!("Could not find specie with id {}", specie_id)
+    }
+
+    /// Returns whether the given specie is a prey, i.e. does not eat any other species.
+    pub fn is_specie_prey(&self, specie_id: u32) -> bool {
+        self.species[self.specie_name_from_id(specie_id)].energy_sources
+            .as_ref()
+            .map(|es| es.len())
+            .unwrap_or(0) == 0
+    }
+
+    /// Returns whether the given specie is a predator for the other given specie.
+    pub fn is_specie_predator_for(self, specie_id: u32, other_specie_id: u32) -> bool {
+        self.species[self.specie_name_from_id(specie_id)].energy_sources
+        .as_ref()
+        .map(|es| es.contains(&String::from(self.specie_name_from_id(other_specie_id))))
+        .unwrap_or(false)
     }
 }
 

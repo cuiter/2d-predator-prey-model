@@ -48,6 +48,30 @@ impl Grid {
         }
     }
 
+    /// Calculates the Moore neighborhood M around the cell at (x, y).
+    /// This is also known as the surrounding cells in the square with the given (border) radius.
+    /// A radius of 1 means a square shape of size (3, 3), excluding the middle cell.
+    pub fn moore_neighborhood(&self, x: u32, y: u32, radius: u32) -> Vec<&Cell> {
+        let mut neighbors = vec![];
+
+        let i_radius = radius as i32;
+
+        for i in -i_radius..(i_radius + 1) {
+            for j in -i_radius..(i_radius + 1)
+            {
+                if i == 0 && j == 0 {
+                    continue;
+                }
+
+                if i >= 0 && i < self.size.w as i32 && j >= 0 && j < self.size.h as i32 {
+                    neighbors.push(self.get_cell_at((x as i32 + i) as u32, (y as i32 + j) as u32));
+                }
+            }
+        }
+
+        neighbors
+    }
+
     #[inline]
     pub fn get_cell_at(&self, x: u32, y: u32) -> &Cell {
         &self.cells[x as usize + y as usize * self.size.w as usize]
