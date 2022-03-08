@@ -48,9 +48,9 @@ fn model_to_canvas_coord(model_coord: Point, canvas_size: Size, view: &View) -> 
 pub fn draw_model(canvas: &mut Canvas<Window>, model: &Box<dyn Model>, view: &View) {
     canvas.set_draw_color(BACKGROUND_COLOR);
     canvas.clear();
-    
+
     // Draw cells
-    
+
     let grid = model.get_grid();
     let grid_size = grid.get_size();
     let params = model.get_params();
@@ -69,22 +69,28 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Box<dyn Model>, view: &Vi
 
             let color = match grid.get_cell_at(x, y) {
                 Cell::Empty => CELL_EMPTY_COLOR,
-                Cell::Animal(specie_id) => 
-                    match &params.species[specie_ids.get_by_right(specie_id).unwrap()].color {
-                        Some(specie_color) => {
-                            
-                            if !color_cache.contains_key(specie_color) {
+                Cell::Animal(specie_id) => {
+                    if !color_cache.contains_key(specie_id) {
+                        let color_str =
+                            &params.species[specie_ids.get_by_right(specie_id).unwrap()].color;
+                        let color = match color_str {
+                            Some(specie_color) => {
                                 let hex_color = u32::from_str_radix(specie_color, 16).unwrap();
-                                let color = Color::RGB((hex_color >> 16) as u8, (hex_color >> 8) as u8, hex_color as u8);
 
-                                color_cache.insert(specie_color, color);
+                                Color::RGB(
+                                    (hex_color >> 16) as u8,
+                                    (hex_color >> 8) as u8,
+                                    hex_color as u8,
+                                )
                             }
+                            None => CELL_ANIMAL_DEFAULT_COLOR,
+                        };
 
-                            color_cache[specie_color]
-
-                        },
-                        None => CELL_ANIMAL_DEFAULT_COLOR
+                        color_cache.insert(specie_id, color);
                     }
+
+                    color_cache[specie_id]
+                }
             };
 
             if color != prev_color {
