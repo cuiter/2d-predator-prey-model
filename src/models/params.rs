@@ -52,9 +52,20 @@ pub fn params_from_file(file_path: &str) -> Result<ModelParams, Box<dyn Error>> 
     let params: ModelParams = serde_json::from_str(&file_contents)?;
 
     for (specie_name, specie_params) in params.species.iter() {
-        for energy_source in specie_params.energy_sources.as_ref().unwrap_or(&vec![]).iter() {
+        for energy_source in specie_params
+            .energy_sources
+            .as_ref()
+            .unwrap_or(&vec![])
+            .iter()
+        {
             if !params.species.contains_key(energy_source) {
-                return Err(Box::new(io::Error::new(io::ErrorKind::Other, format!("Energy source {} for species {} does not exist", energy_source, specie_name))));
+                return Err(Box::new(io::Error::new(
+                    io::ErrorKind::Other,
+                    format!(
+                        "Energy source {} for species {} does not exist",
+                        energy_source, specie_name
+                    ),
+                )));
             }
         }
     }

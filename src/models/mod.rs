@@ -16,12 +16,15 @@ pub enum Cell {
 
 pub struct Grid {
     size: Size,
-    cells: Vec<Cell>
+    cells: Vec<Cell>,
 }
 
 impl Grid {
     pub fn new(size: Size) -> Grid {
-        Grid { size: size, cells: vec![Cell::Empty; size.w as usize * size.h as usize] }
+        Grid {
+            size: size,
+            cells: vec![Cell::Empty; size.w as usize * size.h as usize],
+        }
     }
 
     pub fn populate(&mut self, params: &ModelParams) {
@@ -30,7 +33,8 @@ impl Grid {
 
         for (specie_name, specie_params) in params.species.iter() {
             let specie_id = specie_ids.get_by_left(&specie_name).unwrap();
-            let target_population = (specie_params.initial_population * self.size.w as f32 * self.size.h as f32) as u32;
+            let target_population =
+                (specie_params.initial_population * self.size.w as f32 * self.size.h as f32) as u32;
             let mut population = 0;
             while population < target_population {
                 let new_x = rng.gen_range(0, self.size.w);
@@ -68,9 +72,7 @@ pub trait Model {
 
 pub fn create_model(params: ModelParams) -> Box<dyn Model> {
     match &params.model {
-        &ModelType::Simple => {
-            Box::new(SimpleModel::new(params))
-        },
+        &ModelType::Simple => Box::new(SimpleModel::new(params)),
         _ => {
             panic!("Model {:?} not implemented", &params.model)
         }

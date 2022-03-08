@@ -2,17 +2,16 @@ use crate::models::*;
 
 pub struct SimpleModel {
     grid: Grid,
-    params: ModelParams
+    params: ModelParams,
 }
 
 impl SimpleModel {
     pub fn new(params: ModelParams) -> SimpleModel {
         let grid = Grid::new(params.grid_size);
 
-        SimpleModel { grid, params  }
+        SimpleModel { grid, params }
     }
 }
-
 
 impl Model for SimpleModel {
     fn populate(&mut self) {
