@@ -1,5 +1,5 @@
 use crate::gfx::{draw_model, View};
-use crate::models::{Model, ModelParams};
+use crate::models::{Model, ModelParams, create_model};
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;
@@ -61,10 +61,11 @@ const WINDOW_SIZE: Size = Size::new(800, 600);
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
-pub fn main_loop(params: &ModelParams) {
-    let mut model = Model::new(params.clone());
+pub fn main_loop(params: ModelParams) {
+    let mut model: Box<dyn Model> = create_model(params.clone());
+    model.populate();
     let mut time_controller = TimeController::default();
-    let mut view = View::default(model.get_grid_size());
+    let mut view = View::default(model.get_grid().get_size());
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -106,7 +107,7 @@ pub fn main_loop(params: &ModelParams) {
                     ..
                 } => {
                     if scancode == Scancode::R {
-                        model = Model::new(params.clone());
+                        model = create_model(params.clone());
                     } else if scancode == Scancode::Space {
                         time_controller.toggle_paused();
                     } else if scancode == Scancode::Comma {

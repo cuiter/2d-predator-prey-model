@@ -6,6 +6,7 @@ use sdl2::{
     render::Canvas,
     video::Window,
 };
+use std::collections::HashMap;
 
 /// Represents a viewport for drawing the model's cells onto a canvas
 pub struct View {
@@ -33,9 +34,7 @@ impl View {
 
 const BACKGROUND_COLOR: Color = Color::RGBA(100, 100, 100, 255);
 const CELL_EMPTY_COLOR: Color = Color::RGBA(220, 220, 220, 255);
-const CELL_PLANT_COLOR: Color = Color::RGBA(20, 180, 20, 255);
-const CELL_HERBIVORE_COLOR: Color = Color::RGBA(100, 40, 30, 255);
-const CELL_CARNIVORE_COLOR: Color = Color::RGBA(200, 90, 10, 255);
+const CELL_ANIMAL_DEFAULT_COLOR: Color = Color::RGBA(200, 90, 10, 255);
 const GRID_DIVIDER_COLOR: Color = Color::RGBA(140, 140, 140, 255);
 const MIN_SCALE_FOR_DRAWING_GRID: u32 = 8;
 
@@ -46,15 +45,20 @@ fn model_to_canvas_coord(model_coord: Point, canvas_size: Size, view: &View) -> 
     Point::new(draw_x, draw_y)
 }
 
-pub fn draw_model(canvas: &mut Canvas<Window>, model: &Model, view: &View) {
+pub fn draw_model(canvas: &mut Canvas<Window>, model: &Box<dyn Model>, view: &View) {
     canvas.set_draw_color(BACKGROUND_COLOR);
     canvas.clear();
-
+    
     // Draw cells
-
-    let grid_size = model.get_grid_size();
+    
+    let grid = model.get_grid();
+    let grid_size = grid.get_size();
+    let params = model.get_params();
+    let specie_ids = params.specie_ids();
     let (canvas_width, canvas_height) = canvas.output_size().unwrap();
     let canvas_size = Size::new(canvas_width, canvas_height);
+
+    let mut color_cache = HashMap::new();
 
     let mut prev_color = Color::RGBA(0, 0, 0, 0);
     for x in 0..grid_size.w {
@@ -63,11 +67,24 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Model, view: &View) {
                 model_to_canvas_coord(Point::new(x as i32, y as i32), canvas_size, view);
             let draw_rect = Rect::new(draw_point.x, draw_point.y, view.scale, view.scale);
 
-            let color = match model.get_cell_at(x, y) {
+            let color = match grid.get_cell_at(x, y) {
                 Cell::Empty => CELL_EMPTY_COLOR,
-                Cell::Plant => CELL_PLANT_COLOR,
-                Cell::Herbivore(_) => CELL_HERBIVORE_COLOR,
-                Cell::Carnivore(_) => CELL_CARNIVORE_COLOR,
+                Cell::Animal(specie_id) => 
+                    match &params.species[specie_ids.get_by_right(specie_id).unwrap()].color {
+                        Some(specie_color) => {
+                            
+                            if !color_cache.contains_key(specie_color) {
+                                let hex_color = u32::from_str_radix(specie_color, 16).unwrap();
+                                let color = Color::RGB((hex_color >> 16) as u8, (hex_color >> 8) as u8, hex_color as u8);
+
+                                color_cache.insert(specie_color, color);
+                            }
+
+                            color_cache[specie_color]
+
+                        },
+                        None => CELL_ANIMAL_DEFAULT_COLOR
+                    }
             };
 
             if color != prev_color {

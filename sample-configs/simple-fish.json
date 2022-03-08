@@ -1,20 +1,22 @@
 {
-  "model": "DSAM",
-  "grid_size": { "w": 240, "h": 480 },
+  "model": "Simple",
+  "grid_size": { "w": 24, "h": 48 },
   "species": {
     "Algae": {
+      "color": "22FF22",
       "initial_population": 0.2,
       "death_rate": 0.8,
       "birth_rate": 0.3
     },
     "Shrimp": {
+      "color": "FF2222",
       "initial_population": 0.3,
       "death_rate": 0.3,
       "birth_rate": 0.8,
       "energy_sources": ["Algae"]
     },
     "Tuna": {
-      "initial_population": 0.5,
+      "initial_population": 0.4,
       "death_rate": 0.4,
       "birth_rate": 0.5,
       "energy_sources": ["Algae", "Shrimp"]
