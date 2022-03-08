@@ -2,7 +2,7 @@ use crate::util::{time_ns, Size};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg32;
 
-mod params;
+pub mod params;
 
 #[derive(Clone, PartialEq)]
 pub enum Cell {
