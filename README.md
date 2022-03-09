@@ -11,7 +11,7 @@ Install the following dependencies:
 - SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
 
 Run the following command at the project root:  
-`cargo run`
+`cargo run --release -- <config file>`
 
 The controls are explained in the program's standard output.
 

@@ -1,5 +1,5 @@
 use crate::gfx::{draw_model, View};
-use crate::models::{create_model, Model, ModelParams};
+use crate::models::{create_model, params::params_from_file, Model, ModelParams};
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;
@@ -61,8 +61,9 @@ const WINDOW_SIZE: Size = Size::new(800, 600);
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
-pub fn main_loop(params: ModelParams) {
-    let mut model: Box<dyn Model> = create_model(params.clone());
+pub fn main_loop(config_path: &str) {
+    let model_params = params_from_file(config_path).expect("Failed to load parameters");
+    let mut model: Box<dyn Model> = create_model(model_params);
     model.populate();
     let mut time_controller = TimeController::default();
     let mut view = View::default(model.get_grid().get_size());
@@ -107,7 +108,16 @@ pub fn main_loop(params: ModelParams) {
                     ..
                 } => {
                     if scancode == Scancode::R {
-                        model = create_model(params.clone());
+                        // Reload parameters from file and repopulate model
+                        match params_from_file(config_path) {
+                            Ok(params) => {
+                                model = create_model(params.clone());
+                                model.populate();
+                            }
+                            Err(error) => {
+                                println!("Failed to load parameters: {}", error);
+                            }
+                        }
                     } else if scancode == Scancode::Space {
                         time_controller.toggle_paused();
                     } else if scancode == Scancode::Comma {
