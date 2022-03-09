@@ -57,13 +57,16 @@ impl Grid {
         let i_radius = radius as i32;
 
         for i in -i_radius..(i_radius + 1) {
-            for j in -i_radius..(i_radius + 1)
-            {
+            for j in -i_radius..(i_radius + 1) {
                 if i == 0 && j == 0 {
                     continue;
                 }
 
-                if i >= 0 && i < self.size.w as i32 && j >= 0 && j < self.size.h as i32 {
+                if (x as i32 + i) >= 0
+                    && (x as i32 + i) < self.size.w as i32
+                    && (y as i32 + j) >= 0
+                    && (y as i32 + j) < self.size.h as i32
+                {
                     neighbors.push(self.get_cell_at((x as i32 + i) as u32, (y as i32 + j) as u32));
                 }
             }

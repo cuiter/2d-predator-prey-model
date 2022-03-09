@@ -47,7 +47,7 @@ impl ModelParams {
     pub fn specie_id_from_name(&self, specie_name: &str) -> u32 {
         for (index, name) in self.species.keys().enumerate() {
             if name == specie_name {
-                return index as u32;
+                return index as u32 + 1;
             }
         }
 
@@ -56,7 +56,7 @@ impl ModelParams {
 
     pub fn specie_name_from_id(&self, specie_id: u32) -> &str {
         for (index, specie_name) in self.species.keys().enumerate() {
-            if index as u32 == specie_id  {
+            if (index as u32 + 1) == specie_id {
                 return specie_name;
             }
         }
@@ -64,20 +64,27 @@ impl ModelParams {
         panic!("Could not find specie with id {}", specie_id)
     }
 
-    /// Returns whether the given specie is a prey, i.e. does not eat any other species.
-    pub fn is_specie_prey(&self, specie_id: u32) -> bool {
-        self.species[self.specie_name_from_id(specie_id)].energy_sources
+    pub fn get_specie_by_id(&self, specie_id: u32) -> &SpecieParams {
+        &self.species[self.specie_name_from_id(specie_id)]
+    }
+
+    /// Returns whether the given specie is a herbivore, i.e. does not eat any other species.
+    pub fn is_specie_herbivore(&self, specie_id: u32) -> bool {
+        self.species[self.specie_name_from_id(specie_id)]
+            .energy_sources
             .as_ref()
             .map(|es| es.len())
-            .unwrap_or(0) == 0
+            .unwrap_or(0)
+            == 0
     }
 
     /// Returns whether the given specie is a predator for the other given specie.
-    pub fn is_specie_predator_for(self, specie_id: u32, other_specie_id: u32) -> bool {
-        self.species[self.specie_name_from_id(specie_id)].energy_sources
-        .as_ref()
-        .map(|es| es.contains(&String::from(self.specie_name_from_id(other_specie_id))))
-        .unwrap_or(false)
+    pub fn is_specie_predator_for(&self, specie_id: u32, other_specie_id: u32) -> bool {
+        self.species[self.specie_name_from_id(specie_id)]
+            .energy_sources
+            .as_ref()
+            .map(|es| es.contains(&String::from(self.specie_name_from_id(other_specie_id))))
+            .unwrap_or(false)
     }
 }
 
