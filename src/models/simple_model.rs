@@ -93,23 +93,30 @@ impl SimpleModel {
 
         match cell {
             &Cell::Animal(specie_id) => {
-                /*let specie_params = self.params.get_specie_by_id(specie_id);
+                let specie_params = self.params.get_specie_by_id(specie_id);
                 let cell_birth_rate = specie_params.birth_rate;
                 let cell_death_rate = specie_params.death_rate;
+                let specie_is_herbivore = self.params.is_specie_herbivore(specie_id);
 
-                if self.params.is_specie_herbivore(specie_id) || n_predators > 0 {
+                if specie_is_herbivore || n_predators > 0 {
                     // Cell is prey
+                    let random_1 = self.rng.gen::<f32>();
 
-                    let random_1 = rng.gen::<f32>();
-
-                    Cell::Empty
-                    /*if random_1 < (1.0f32 - cell_death_rate).pow(n_predators.count()) {
-                        // Hunt failed. Note: if cell is predator, should die if not the case
+                    if random_1 < (1.0f32 - cell_death_rate).powf(n_predators as f32) {
+                        // Hunt failed.
                     } else {
+                        let predator_birth_rate = self
+                            .params
+                            .get_specie_by_id(dominant_predator_id)
+                            .birth_rate;
                         let random_2 = self.rng.gen::<f32>();
-                        //    cell becomes predator by breeding
-                    }*/
-                } else {
+                        if random_2 < predator_birth_rate {
+                            // Cell becomes predator by breeding
+                            return Cell::Animal(dominant_predator_id);
+                        }
+                    }
+                }
+                if !specie_is_herbivore {
                     // Cell is a predator
                     let random = self.rng.gen::<f32>();
                     if random < cell_death_rate {
@@ -117,10 +124,12 @@ impl SimpleModel {
                         Cell::Empty
                     } else {
                         // Cell remains predator
-                        cell.clone()
+                        Cell::Animal(specie_id)
                     }
-                }*/
-                Cell::Animal(specie_id)
+                } else {
+                    // Cell is a herbivore, remains the same.
+                    Cell::Animal(specie_id)
+                }
             }
             &Cell::Empty => {
                 let (n_same_herbivores, dominant_herbivore_id) =
@@ -130,6 +139,7 @@ impl SimpleModel {
                     // Cell remains empty
                     Cell::Empty
                 } else {
+                    // Cell may become the neighborhood's most common herbivore by breeding
                     let random = self.rng.gen::<f32>();
                     let cell_birth_rate = self
                         .params
