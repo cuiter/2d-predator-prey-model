@@ -85,6 +85,18 @@ impl Grid {
         self.cells[x as usize + y as usize * self.size.w as usize] = cell;
     }
 
+    pub fn get_cell_specie_ids(&self) -> Vec<u32> {
+        self.cells
+            .iter()
+            .map(|cell| {
+                match cell {
+                    Cell::Empty => 0,
+                    Cell::Animal(specie_id) => *specie_id
+                }
+            })
+            .collect()
+    }
+
     pub const fn get_size(&self) -> Size {
         self.size
     }

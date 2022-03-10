@@ -1,5 +1,6 @@
 use crate::gfx::{draw_model, View};
 use crate::models::{create_model, params::params_from_file, Model, ModelParams};
+use crate::stats::Stats;
 use crate::util::{time_ns, Size};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Scancode;
@@ -61,10 +62,13 @@ const WINDOW_SIZE: Size = Size::new(800, 600);
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
-pub fn main_loop(config_path: &str) {
+pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
     let model_params = params_from_file(config_path).expect("Failed to load parameters");
     let mut model: Box<dyn Model> = create_model(model_params);
     model.populate();
+    let mut stats = stats_path.map(|path| Stats::new(path));
+    let mut ticks_elapsed = 0;
+
     let mut time_controller = TimeController::default();
     let mut view = View::default(model.get_grid().get_size());
 
@@ -113,6 +117,10 @@ pub fn main_loop(config_path: &str) {
                             Ok(params) => {
                                 model = create_model(params.clone());
                                 model.populate();
+                            
+                                if let Some(stats) = &mut stats {
+                                    stats.reset();
+                                }
                             }
                             Err(error) => {
                                 println!("Failed to load parameters: {}", error);
@@ -147,6 +155,10 @@ pub fn main_loop(config_path: &str) {
         let ticks = time_controller.tick(seconds_elapsed);
         for _ in 0..ticks {
             model.tick();
+            ticks_elapsed += 1;
+            if let Some(stats) = &mut stats {
+                stats.collect(ticks_elapsed, model.get_grid(), model.get_params());
+            }
         }
 
         draw_model(&mut canvas, &model, &view);
