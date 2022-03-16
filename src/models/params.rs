@@ -28,9 +28,14 @@ pub struct ModelParams {
     pub model: ModelType,
     // Mapping from specie name -> specie params
     pub species: HashMap<String, SpecieParams>,
+    #[serde(default = "default_specie_sense_radius")]
+    pub sense_radius: u32,
 
     pub grid_size: Size,
     pub random_seed: Option<u64>,
+}
+fn default_specie_sense_radius() -> u32 {
+    2
 }
 
 impl ModelParams {

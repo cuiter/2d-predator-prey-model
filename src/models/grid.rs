@@ -10,11 +10,13 @@ pub enum Cell {
     Animal(u32),
 }
 
+#[derive(Clone)]
 pub struct Grid {
     size: Size,
     cells: Vec<Cell>,
 }
 
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Quadrant {
     West,
     North,
@@ -63,7 +65,7 @@ impl Grid {
         y: u32,
         radius: u32,
         quadrant: Option<Quadrant>,
-    ) -> Vec<&Cell> {
+    ) -> Vec<Cell> {
         let mut neighbors = vec![];
 
         let i_radius = radius as i32;
@@ -88,8 +90,10 @@ impl Grid {
                     };
 
                     if inside_quadrant {
-                        neighbors
-                            .push(self.get_cell_at((x as i32 + i) as u32, (y as i32 + j) as u32));
+                        neighbors.push(
+                            self.get_cell_at((x as i32 + i) as u32, (y as i32 + j) as u32)
+                                .clone(),
+                        );
                     }
                 }
             }
@@ -99,20 +103,20 @@ impl Grid {
     }
 
     /// Calculates the Von Neumann neighborhood around the cell at (x, y) with radius 1.
-    pub fn von_neumann_neighborhood_r1(&self, x: u32, y: u32) -> Vec<&Cell> {
+    pub fn von_neumann_neighborhood_r1(&self, x: u32, y: u32) -> Vec<Cell> {
         let mut neighbors = vec![];
 
         if x > 0 {
-            neighbors.push(self.get_cell_at(x - 1, y));
+            neighbors.push(self.get_cell_at(x - 1, y).clone());
         }
         if y > 0 {
-            neighbors.push(self.get_cell_at(x, y - 1));
+            neighbors.push(self.get_cell_at(x, y - 1).clone());
         }
         if x < self.size.w - 1 {
-            neighbors.push(self.get_cell_at(x + 1, y));
+            neighbors.push(self.get_cell_at(x + 1, y).clone());
         }
         if y < self.size.h - 1 {
-            neighbors.push(self.get_cell_at(x, y + 1));
+            neighbors.push(self.get_cell_at(x, y + 1).clone());
         }
 
         neighbors

@@ -106,7 +106,8 @@ pub mod utils {
                     .filter(|neighbor| match neighbor {
                         Cell::Animal(neighbor_specie_id) => {
                             params.is_specie_predator_for(specie_id, *neighbor_specie_id)
-                        }, Cell::Empty => false,
+                        }
+                        Cell::Empty => false,
                     })
                     .collect();
                 let n_prey = prey_neighbors.len() as u32;
