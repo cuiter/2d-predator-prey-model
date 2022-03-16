@@ -1,7 +1,7 @@
 use crate::util::Size;
 use bimap::BiMap;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
 use std::io;
@@ -27,7 +27,7 @@ pub struct SpecieParams {
 pub struct ModelParams {
     pub model: ModelType,
     // Mapping from specie name -> specie params
-    pub species: HashMap<String, SpecieParams>,
+    pub species: BTreeMap<String, SpecieParams>,
     #[serde(default = "default_specie_sense_radius")]
     pub sense_radius: u32,
 

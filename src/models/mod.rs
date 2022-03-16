@@ -1,7 +1,7 @@
 use crate::util::{time_ns, Size};
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg32;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub mod params;
 pub use params::{ModelParams, ModelType};
@@ -38,7 +38,7 @@ pub mod utils {
     /// Returns the count and specie ID of the most occurring neighboring species.
     fn most_occurring_neighbor(neighbors: &Vec<&Cell>) -> (u32, u32) {
         if neighbors.len() > 0 {
-            let mut count_by_specie = HashMap::new();
+            let mut count_by_specie = BTreeMap::new();
             for neighbor in neighbors {
                 match neighbor {
                     Cell::Animal(neighbor_specie_id) => {

@@ -12,14 +12,14 @@
     "Shrimp": {
       "color": "FF2222",
       "initial_population": 0.03,
-      "death_rate": 0.3,
+      "death_rate": 0.003,
       "birth_rate": 0.8,
       "energy_sources": ["Algae"]
     },
     "Tuna": {
       "color": "2222FF",
       "initial_population": 0.04,
-      "death_rate": 0.4,
+      "death_rate": 0.004,
       "birth_rate": 0.5,
       "energy_sources": ["Algae", "Shrimp"]
     }

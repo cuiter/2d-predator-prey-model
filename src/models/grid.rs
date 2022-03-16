@@ -16,7 +16,7 @@ pub struct Grid {
     cells: Vec<Cell>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum Quadrant {
     West,
     North,
@@ -32,8 +32,7 @@ impl Grid {
         }
     }
 
-    pub fn populate(&mut self, params: &ModelParams) {
-        let mut rng = Pcg32::seed_from_u64(params.random_seed.unwrap_or(time_ns() as u64));
+    pub fn populate(&mut self, params: &ModelParams, rng: &mut Pcg32) {
         let specie_ids = params.specie_ids();
 
         for (specie_name, specie_params) in params.species.iter() {

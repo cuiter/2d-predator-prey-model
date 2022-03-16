@@ -1,7 +1,7 @@
 use crate::models::*;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg32;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub struct PPPEModel {
     grid: Grid,
@@ -225,7 +225,7 @@ impl PPPEModel {
                 let neighbors = self
                     .grid
                     .moore_neighborhood(x, y, self.params.sense_radius, None);
-                let neighbors_by_quatrant: HashMap<Quadrant, Vec<Cell>> = quadrants
+                let neighbors_by_quatrant: BTreeMap<Quadrant, Vec<Cell>> = quadrants
                     .iter()
                     .map(|quadrant| {
                         (
@@ -338,7 +338,7 @@ impl PPPEModel {
             }
         }
 
-        let mut competition_map: HashMap<(u32, u32), Vec<(u32, u32)>> = HashMap::new();
+        let mut competition_map: BTreeMap<(u32, u32), Vec<(u32, u32)>> = BTreeMap::new();
 
         for (x_from, y_from, x_to, y_to) in competition_list.iter() {
             if cells.get_cell_at(*x_to, *y_to) == &Cell::Empty {
@@ -357,7 +357,6 @@ impl PPPEModel {
         for ((x_to, y_to), candidates) in competition_map.iter() {
             let random = self.rng.gen_range(0, candidates.len());
             let (x_from, y_from) = candidates[random];
-
             let cell = new_cells.get_cell_at(x_from, y_from);
             new_cells.set_cell_at(*x_to, *y_to, cell.clone());
             new_cells.set_cell_at(x_from, y_from, Cell::Empty);
@@ -369,7 +368,7 @@ impl PPPEModel {
 
 impl Model for PPPEModel {
     fn populate(&mut self) {
-        self.grid.populate(&self.params);
+        self.grid.populate(&self.params, &mut self.rng);
     }
 
     fn tick(&mut self) {
@@ -383,7 +382,7 @@ impl Model for PPPEModel {
 
         println!("tick");
 
-        self.grid = cells_after_reproduction;
+        self.grid = cells_after_movement;
     }
 
     fn get_grid(&self) -> &Grid {

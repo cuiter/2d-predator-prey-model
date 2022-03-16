@@ -121,6 +121,7 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
                                 if let Some(stats) = &mut stats {
                                     stats.reset();
                                 }
+                                ticks_elapsed = 0;
                             }
                             Err(error) => {
                                 println!("Failed to load parameters: {}", error);

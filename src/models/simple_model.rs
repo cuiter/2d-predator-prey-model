@@ -1,7 +1,6 @@
 use crate::models::*;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg32;
-use std::collections::HashMap;
 
 pub struct SimpleModel {
     grid: Grid,
@@ -91,7 +90,7 @@ impl SimpleModel {
 
 impl Model for SimpleModel {
     fn populate(&mut self) {
-        self.grid.populate(&self.params);
+        self.grid.populate(&self.params, &mut self.rng);
     }
 
     fn tick(&mut self) {
