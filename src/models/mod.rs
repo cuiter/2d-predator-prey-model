@@ -12,6 +12,9 @@ pub use grid::{Cell, Grid, Quadrant};
 mod simple_model;
 use simple_model::SimpleModel;
 
+mod pppe_model;
+use pppe_model::PPPEModel;
+
 pub trait Model {
     fn populate(&mut self);
     fn tick(&mut self);
@@ -22,6 +25,7 @@ pub trait Model {
 pub fn create_model(params: ModelParams) -> Box<dyn Model> {
     match &params.model {
         &ModelType::Simple => Box::new(SimpleModel::new(params)),
+        &ModelType::PPPE => Box::new(PPPEModel::new(params)),
         _ => {
             panic!("Model {:?} not implemented", &params.model)
         }
@@ -84,6 +88,32 @@ pub mod utils {
                 let (_, dominant_predator_id) = most_occurring_neighbor(&predating_neighbors);
 
                 (n_predators, dominant_predator_id)
+            }
+            &Cell::Empty => (0, 0),
+        }
+    }
+
+    /// Returns the amount of edible prey in the neighborhood and the specie id of the most prevalent prey.
+    pub fn get_neighbor_prey(
+        cell: &Cell,
+        neighbors: &Vec<Cell>,
+        params: &ModelParams,
+    ) -> (u32, u32) {
+        match cell {
+            &Cell::Animal(specie_id) => {
+                let prey_neighbors: Vec<&Cell> = neighbors
+                    .iter()
+                    .filter(|neighbor| match neighbor {
+                        Cell::Animal(neighbor_specie_id) => {
+                            params.is_specie_predator_for(specie_id, *neighbor_specie_id)
+                        }, Cell::Empty => false,
+                    })
+                    .collect();
+                let n_prey = prey_neighbors.len() as u32;
+
+                let (_, dominant_prey_id) = most_occurring_neighbor(&prey_neighbors);
+
+                (n_prey, dominant_prey_id)
             }
             &Cell::Empty => (0, 0),
         }
