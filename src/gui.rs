@@ -117,7 +117,7 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
                             Ok(params) => {
                                 model = create_model(params.clone());
                                 model.populate();
-                            
+
                                 if let Some(stats) = &mut stats {
                                     stats.reset();
                                 }

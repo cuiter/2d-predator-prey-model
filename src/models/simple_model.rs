@@ -17,79 +17,10 @@ impl SimpleModel {
         SimpleModel { grid, params, rng }
     }
 
-    /// Returns the count and specie ID of the most occurring neighboring species.
-    fn most_occurring_neighbor(neighbors: &Vec<&Cell>) -> (u32, u32) {
-        if neighbors.len() > 0 {
-            let mut count_by_specie = HashMap::new();
-            for neighbor in neighbors {
-                match neighbor {
-                    Cell::Animal(neighbor_specie_id) => {
-                        if (!count_by_specie.contains_key(neighbor_specie_id)) {
-                            count_by_specie.insert(neighbor_specie_id, 1u32);
-                        } else {
-                            count_by_specie.insert(
-                                neighbor_specie_id,
-                                count_by_specie[neighbor_specie_id] + 1u32,
-                            );
-                        }
-                    }
-                    Cell::Empty => {}
-                }
-            }
-            let mut count_by_specie_vec: Vec<(&&u32, &u32)> = count_by_specie.iter().collect();
-            count_by_specie_vec.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap()); // Sort by count descending
-
-            let specie_id = **count_by_specie_vec[0].0;
-            let count = *count_by_specie_vec[0].1;
-
-            (count, specie_id)
-        } else {
-            (0, 0)
-        }
-    }
-
-    /// Returns the amount of predators in the neighborhood and the specie id of the most prevalent predator.
-    fn get_neighbor_predators(&self, cell: &Cell, neighbors: &Vec<Cell>) -> (u32, u32) {
-        match cell {
-            &Cell::Animal(specie_id) => {
-                let predating_neighbors: Vec<&Cell> = neighbors
-                    .iter()
-                    .filter(|neighbor| match neighbor {
-                        Cell::Animal(neighbor_specie_id) => self
-                            .params
-                            .is_specie_predator_for(*neighbor_specie_id, specie_id),
-                        Cell::Empty => false,
-                    })
-                    .collect();
-                let n_predators = predating_neighbors.len() as u32;
-
-                let (_, dominant_predator_id) =
-                    SimpleModel::most_occurring_neighbor(&predating_neighbors);
-
-                (n_predators, dominant_predator_id)
-            }
-            &Cell::Empty => (0, 0),
-        }
-    }
-
-    /// Returns the amount of same-specie herbivores in the neighborhood and the specie id of the most prevalent herbivore.
-    fn get_neighbor_herbivores(&self, neighbors: &Vec<Cell>) -> (u32, u32) {
-        let herbivore_neighbors: Vec<&Cell> = neighbors
-            .iter()
-            .filter(|neighbor| match neighbor {
-                Cell::Animal(neighbor_specie_id) => {
-                    self.params.is_specie_herbivore(*neighbor_specie_id)
-                }
-                Cell::Empty => false,
-            })
-            .collect();
-
-        SimpleModel::most_occurring_neighbor(&herbivore_neighbors)
-    }
-
     /// Determines the next state of the given cell, given the current state and the cell's surrounding neighbors.
     fn next_cell_state(&mut self, cell: &Cell, neighbors: &Vec<Cell>) -> Cell {
-        let (n_predators, dominant_predator_id) = self.get_neighbor_predators(cell, neighbors);
+        let (n_predators, dominant_predator_id) =
+            get_neighbor_predators(cell, neighbors, &self.params);
 
         match cell {
             &Cell::Animal(specie_id) => {
@@ -133,7 +64,7 @@ impl SimpleModel {
             }
             &Cell::Empty => {
                 let (n_same_herbivores, dominant_herbivore_id) =
-                    self.get_neighbor_herbivores(neighbors);
+                    get_neighbor_herbivores(neighbors, &self.params);
 
                 if n_same_herbivores == 0 || n_predators > 0 {
                     // Cell remains empty
@@ -175,7 +106,7 @@ impl Model for SimpleModel {
                 {
                     neighbors = self
                         .grid
-                        .moore_neighborhood(x, y, 1)
+                        .moore_neighborhood(x, y, 1, None)
                         .iter()
                         .map(|cell| (*cell).clone())
                         .collect();
