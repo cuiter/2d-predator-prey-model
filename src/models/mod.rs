@@ -50,8 +50,8 @@ pub mod utils {
                                 count_by_specie[neighbor_specie_id] + 1u32,
                             );
                         }
-                    }
-                    Cell::Empty => {}
+                    },
+                    Cell::Empty => { }
                 }
             }
             let mut count_by_specie_vec: Vec<(&&u32, &u32)> = count_by_specie.iter().collect();
@@ -72,25 +72,27 @@ pub mod utils {
         neighbors: &Vec<Cell>,
         params: &ModelParams,
     ) -> (u32, u32) {
-        match cell {
-            &Cell::Animal(specie_id) => {
-                let predating_neighbors: Vec<&Cell> = neighbors
-                    .iter()
-                    .filter(|neighbor| match neighbor {
-                        Cell::Animal(neighbor_specie_id) => {
+        let predating_neighbors: Vec<&Cell> = neighbors
+            .iter()
+            .filter(|neighbor| match neighbor {
+                Cell::Animal(neighbor_specie_id) => {
+                    match cell {
+                        &Cell::Animal(specie_id) => {
                             params.is_specie_predator_for(*neighbor_specie_id, specie_id)
+                        },
+                        &Cell::Empty => {
+                            !params.is_specie_herbivore(*neighbor_specie_id)
                         }
-                        Cell::Empty => false,
-                    })
-                    .collect();
-                let n_predators = predating_neighbors.len() as u32;
+                    }
+                },
+                Cell::Empty => false,
+            })
+            .collect();
+        let n_predators = predating_neighbors.len() as u32;
 
-                let (_, dominant_predator_id) = most_occurring_neighbor(&predating_neighbors);
+        let (_, dominant_predator_id) = most_occurring_neighbor(&predating_neighbors);
 
-                (n_predators, dominant_predator_id)
-            }
-            &Cell::Empty => (0, 0),
-        }
+        (n_predators, dominant_predator_id)
     }
 
     /// Returns the amount of edible prey in the neighborhood and the specie id of the most prevalent prey.
