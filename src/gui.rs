@@ -59,6 +59,8 @@ impl TimeController {
 
 const ENABLE_VSYNC: bool = true;
 const WINDOW_SIZE: Size = Size::new(800, 600);
+// Number of seconds (target) for processing model behavior per frame, before continuing on.
+const MODEL_TIME_PER_FRAME_THRESHOLD_SEC: f32 = 0.025;
 
 /// The main (GUI) loop of the program.
 /// Creates an SDL2 window and runs an event loop.
@@ -150,6 +152,7 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
 
         let cur_nano_time = time_ns();
         let raw_seconds_elapsed: f32 = (cur_nano_time - prev_nano_time) as f32 / 1e9f32;
+        prev_nano_time = cur_nano_time;
         // Clamp the elapsed time in this frame between 1 nanosecond and 1 second to prevent divide by zero and runaway.
         let seconds_elapsed: f32 = raw_seconds_elapsed.clamp(1e-9f32, 1.0);
 
@@ -160,11 +163,15 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
             if let Some(stats) = &mut stats {
                 stats.collect(ticks_elapsed, model.get_grid(), model.get_params());
             }
+
+            if (time_ns() - cur_nano_time) as f32 / 1e9f32 > MODEL_TIME_PER_FRAME_THRESHOLD_SEC {
+                // Skip processing any more ticks, continue.
+                break;
+            }
         }
 
         draw_model(&mut canvas, &model, &view);
         canvas.present();
 
-        prev_nano_time = cur_nano_time;
     }
 }
