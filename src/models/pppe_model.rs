@@ -278,9 +278,18 @@ impl PPPEModel {
                             );
 
                             if n_predators_by_quadrant.len() > 0 {
-                                // Intent towards quadrant with least amount of predators
-                                // Note: may be improved by choosing randomly between the optimal quadrants, but is not necessary
+                                // Intent towards a random quadrant with the least amount of predators
                                 intent = Some(n_predators_by_quadrant[0].0);
+
+                                let n_lowest_predators = n_predators_by_quadrant[0].1;
+                                let lowest_predator_quadrants: Vec<Quadrant> =
+                                    n_predators_by_quadrant
+                                        .iter()
+                                        .filter(|(_, n_prey)| n_prey == &n_lowest_predators)
+                                        .map(|(quadrant, _)| quadrant.clone())
+                                        .collect();
+                                let random = self.rng.gen_range(0, lowest_predator_quadrants.len());
+                                intent = Some(lowest_predator_quadrants[random]);
                             }
                         } else if !self.params.is_specie_herbivore(specie_id) {
                             // Cell is predator
@@ -303,9 +312,15 @@ impl PPPEModel {
                             });
 
                             if n_prey_by_quadrant.len() > 0 {
-                                // Intent towards quadrant with most amount of prey
-                                // Note: may be improved by choosing randomly between the optimal quadrants, but is not necessary
-                                intent = Some(n_prey_by_quadrant.last().unwrap().0);
+                                // Intent towards a random quadrant with the most amount of prey
+                                let n_highest_prey = n_prey_by_quadrant.last().unwrap().1;
+                                let highest_prey_quadrants: Vec<Quadrant> = n_prey_by_quadrant
+                                    .iter()
+                                    .filter(|(_, n_prey)| n_prey == &n_highest_prey)
+                                    .map(|(quadrant, _)| quadrant.clone())
+                                    .collect();
+                                let random = self.rng.gen_range(0, highest_prey_quadrants.len());
+                                intent = Some(highest_prey_quadrants[random]);
                             } else {
                                 // Choose random direction
                                 intent = Some(
