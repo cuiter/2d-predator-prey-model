@@ -10,8 +10,11 @@ Install the following dependencies:
 - A C toolchain (e.g. MSVC or MinGW on Windows, `build-essential` on Ubuntu)
 - SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
 
+This program uses a config file that specifies the model parameters (see the `sample-configs/` directory),
+and outputs a CSV file containing model statistics. This can then be read by e.g. Excel for futher processing.
+
 Run the following command at the project root:  
-`cargo run --release -- <config file>`
+`cargo run --release -- <config file> [stats file]`
 
 The controls are explained in the program's standard output.
 
