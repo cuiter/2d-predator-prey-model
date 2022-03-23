@@ -67,7 +67,7 @@ pub fn draw_model(canvas: &mut Canvas<Window>, model: &Box<dyn Model>, view: &Vi
                 model_to_canvas_coord(Point::new(x as i32, y as i32), canvas_size, view);
             let draw_rect = Rect::new(draw_point.x, draw_point.y, view.scale, view.scale);
 
-            let color = match grid.get_cell_at(x, y) {
+            let color = match grid.get_cell_at(x as i32, y as i32, false) {
                 Cell::Empty => CELL_EMPTY_COLOR,
                 Cell::Animal(specie_id) => {
                     if !color_cache.contains_key(specie_id) {

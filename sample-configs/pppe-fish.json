@@ -1,6 +1,7 @@
 {
   "model": "PPPE",
   "sense_radius": 2,
+  "wrap_edges": true,
   "grid_size": { "w": 240, "h": 240 },
   "species": {
     "Algae": {

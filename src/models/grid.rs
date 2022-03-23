@@ -41,11 +41,11 @@ impl Grid {
                 (specie_params.initial_population * self.size.w as f32 * self.size.h as f32) as u32;
             let mut population = 0;
             while population < target_population {
-                let new_x = rng.gen_range(0, self.size.w);
-                let new_y = rng.gen_range(0, self.size.h);
+                let new_x = rng.gen_range(0, self.size.w as i32);
+                let new_y = rng.gen_range(0, self.size.h as i32);
 
-                if self.get_cell_at(new_x, new_y) == &Cell::Empty {
-                    self.set_cell_at(new_x, new_y, Cell::Animal(*specie_id));
+                if self.get_cell_at(new_x, new_y, false) == &Cell::Empty {
+                    self.set_cell_at(new_x, new_y, Cell::Animal(*specie_id), false);
                     population += 1;
                 }
             }
@@ -64,8 +64,9 @@ impl Grid {
         y: u32,
         radius: u32,
         quadrant: Option<Quadrant>,
+        wrap_edges: bool
     ) -> Vec<Cell> {
-        let mut neighbors = vec![];
+        let mut neighbors = Vec::with_capacity((radius * radius - 1) as usize);
 
         let i_radius = radius as i32;
 
@@ -75,10 +76,11 @@ impl Grid {
                     continue;
                 }
 
-                if (x as i32 + i) >= 0
-                    && (x as i32 + i) < self.size.w as i32
-                    && (y as i32 + j) >= 0
-                    && (y as i32 + j) < self.size.h as i32
+                if wrap_edges ||
+                       ((x as i32 + i) >= 0
+                     && (x as i32 + i) < self.size.w as i32
+                     && (y as i32 + j) >= 0
+                     && (y as i32 + j) < self.size.h as i32)
                 {
                     let inside_quadrant = match quadrant {
                         None => true,
@@ -90,7 +92,7 @@ impl Grid {
 
                     if inside_quadrant {
                         neighbors.push(
-                            self.get_cell_at((x as i32 + i) as u32, (y as i32 + j) as u32)
+                            self.get_cell_at(x as i32 + i, y as i32 + j, wrap_edges)
                                 .clone(),
                         );
                     }
@@ -102,33 +104,51 @@ impl Grid {
     }
 
     /// Calculates the Von Neumann neighborhood around the cell at (x, y) with radius 1.
-    pub fn von_neumann_neighborhood_r1(&self, x: u32, y: u32) -> Vec<Cell> {
-        let mut neighbors = vec![];
+    pub fn von_neumann_neighborhood_r1(&self, x: u32, y: u32, wrap_edges: bool) -> Vec<Cell> {
+        let mut neighbors = Vec::with_capacity(4);
 
-        if x > 0 {
-            neighbors.push(self.get_cell_at(x - 1, y).clone());
+        if wrap_edges || x > 0 {
+            neighbors.push(self.get_cell_at(x as i32 - 1, y as i32, wrap_edges).clone());
         }
-        if y > 0 {
-            neighbors.push(self.get_cell_at(x, y - 1).clone());
+        if wrap_edges || y > 0 {
+            neighbors.push(self.get_cell_at(x as i32, y as i32 - 1, wrap_edges).clone());
         }
-        if x < self.size.w - 1 {
-            neighbors.push(self.get_cell_at(x + 1, y).clone());
+        if wrap_edges || x < self.size.w - 1 {
+            neighbors.push(self.get_cell_at(x as i32 + 1, y as i32, wrap_edges).clone());
         }
-        if y < self.size.h - 1 {
-            neighbors.push(self.get_cell_at(x, y + 1).clone());
+        if wrap_edges || y < self.size.h - 1 {
+            neighbors.push(self.get_cell_at(x as i32, y as i32 + 1, wrap_edges).clone());
         }
 
         neighbors
     }
 
     #[inline]
-    pub fn get_cell_at(&self, x: u32, y: u32) -> &Cell {
-        &self.cells[x as usize + y as usize * self.size.w as usize]
+    pub fn get_cell_at(&self, x: u32, y: u32, wrap_edges: bool) -> &Cell {
+        if wrap_edges {
+            let size_w = self.size.w as i32;
+            let size_h = self.size.h as i32;
+            let wrapped_x = ((x % size_w) + size_w) % size_w;
+            let wrapped_y = ((y % size_h) + size_h) % size_h;
+
+            &self.cells[wrapped_x as usize + wrapped_y as usize * self.size.w as usize]
+        } else {
+            &self.cells[x as usize + y as usize * self.size.w as usize]
+        }
     }
 
     #[inline]
-    pub fn set_cell_at(&mut self, x: u32, y: u32, cell: Cell) {
-        self.cells[x as usize + y as usize * self.size.w as usize] = cell;
+    pub fn set_cell_at(&mut self, x: u32, y: u32, cell: Cell, wrap_edges: bool) {
+        if wrap_edges {
+            let size_w = self.size.w as i32;
+            let size_h = self.size.h as i32;
+            let wrapped_x = ((x % size_w) + size_w) % size_w;
+            let wrapped_y = ((y % size_h) + size_h) % size_h;
+
+            self.cells[wrapped_x as usize + wrapped_y as usize * self.size.w as usize] = cell;
+        } else {
+            self.cells[x as usize + y as usize * self.size.w as usize] = cell;
+        }
     }
 
     pub fn get_cell_specie_ids(&self) -> Vec<u32> {

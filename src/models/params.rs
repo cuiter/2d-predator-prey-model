@@ -30,13 +30,14 @@ pub struct ModelParams {
     pub species: BTreeMap<String, SpecieParams>,
     #[serde(default = "default_specie_sense_radius")]
     pub sense_radius: u32,
+    #[serde(default = "default_wrap_edges")]
+    pub wrap_edges: bool,
 
     pub grid_size: Size,
     pub random_seed: Option<u64>,
 }
-fn default_specie_sense_radius() -> u32 {
-    2
-}
+fn default_specie_sense_radius() -> u32 { 2 }
+fn default_wrap_edges() -> bool { false }
 
 impl ModelParams {
     /// Returns the mapping from specie name -> specie id

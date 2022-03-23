@@ -71,7 +71,7 @@ impl PPPEModel {
         for x in 0..grid_size.w {
             for y in 0..grid_size.h {
                 let cell = self.grid.get_cell_at(x, y).clone();
-                let neighbors = self.grid.von_neumann_neighborhood_r1(x, y);
+                let neighbors = self.grid.von_neumann_neighborhood_r1(x, y, self.params.wrap_edges);
                 let (new_cell, fed_or_killed) =
                     self.feeding_phase_next_cell_state(&cell, &neighbors);
                 new_cells.set_cell_at(x, y, new_cell);
@@ -174,7 +174,7 @@ impl PPPEModel {
             for y in 0..grid_size.h {
                 let cell = fed_cells.get_cell_at(x, y).clone();
                 let fed_or_killed = cells_fed_or_killed[(y * grid_size.w + x) as usize];
-                let neighbors = self.grid.von_neumann_neighborhood_r1(x, y);
+                let neighbors = self.grid.von_neumann_neighborhood_r1(x, y, self.params.wrap_edges);
 
                 let mut neighbor_cells_fed_or_killed: Vec<bool> = vec![];
                 if x > 0 {
@@ -216,7 +216,7 @@ impl PPPEModel {
             Quadrant::South,
         ];
 
-        let mut competition_list: Vec<(u32, u32, u32, u32)> = vec![];
+        let mut competition_list: Vec<(u32, u32, i32, i32)> = vec![];
 
         for x in 0..grid_size.w {
             for y in 0..grid_size.h {
@@ -224,7 +224,7 @@ impl PPPEModel {
 
                 let neighbors = self
                     .grid
-                    .moore_neighborhood(x, y, self.params.sense_radius, None);
+                    .moore_neighborhood(x, y, self.params.sense_radius, None, self.params.wrap_edges);
                 let neighbors_by_quatrant: BTreeMap<Quadrant, Vec<Cell>> = quadrants
                     .iter()
                     .map(|quadrant| {
@@ -235,6 +235,7 @@ impl PPPEModel {
                                 y,
                                 self.params.sense_radius,
                                 Some(*quadrant),
+                                self.params.wrap_edges
                             ),
                         )
                     })
@@ -334,16 +335,16 @@ impl PPPEModel {
 
                         match intent {
                             Some(Quadrant::East) => {
-                                competition_list.push((x, y, x + 1, y));
+                                competition_list.push((x, y, x as i32 + 1, y as i32));
                             }
                             Some(Quadrant::North) => {
-                                competition_list.push((x, y, x, y - 1));
+                                competition_list.push((x, y, x as i32, y as i32 - 1));
                             }
                             Some(Quadrant::West) => {
-                                competition_list.push((x, y, x - 1, y));
+                                competition_list.push((x, y, x as i32 - 1, y as i32));
                             }
                             Some(Quadrant::South) => {
-                                competition_list.push((x, y, x, y + 1));
+                                competition_list.push((x, y, x as i32, y as i32 + 1));
                             }
                             None => {}
                         }
@@ -353,10 +354,10 @@ impl PPPEModel {
             }
         }
 
-        let mut competition_map: BTreeMap<(u32, u32), Vec<(u32, u32)>> = BTreeMap::new();
+        let mut competition_map: BTreeMap<(i32, i32), Vec<(u32, u32)>> = BTreeMap::new();
 
         for (x_from, y_from, x_to, y_to) in competition_list.iter() {
-            if cells.get_cell_at(*x_to, *y_to) == &Cell::Empty {
+            if cells.get_cell_at_wrapped(*x_to, *y_to) == &Cell::Empty {
                 if !competition_map.contains_key(&(*x_to, *y_to)) {
                     competition_map.insert((*x_to, *y_to), vec![]);
                 }
@@ -373,8 +374,13 @@ impl PPPEModel {
             let random = self.rng.gen_range(0, candidates.len());
             let (x_from, y_from) = candidates[random];
             let cell = new_cells.get_cell_at(x_from, y_from);
-            new_cells.set_cell_at(*x_to, *y_to, cell.clone());
-            new_cells.set_cell_at(x_from, y_from, Cell::Empty);
+            if self.params.wrap_edges {
+                new_cells.set_cell_at_wrapped(*x_to, *y_to, cell.clone());
+                new_cells.set_cell_at_wrapped(x_from as i32, y_from as i32, Cell::Empty);
+            } else {
+                new_cells.set_cell_at(*x_to as u32, *y_to as u32, cell.clone());
+                new_cells.set_cell_at(x_from as u32, y_from as u32, Cell::Empty);
+            }
         }
 
         new_cells

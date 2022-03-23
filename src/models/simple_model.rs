@@ -105,7 +105,7 @@ impl Model for SimpleModel {
                 {
                     neighbors = self
                         .grid
-                        .moore_neighborhood(x, y, 1, None)
+                        .moore_neighborhood(x, y, 1, None, self.params.wrap_edges)
                         .iter()
                         .map(|cell| (*cell).clone())
                         .collect();
