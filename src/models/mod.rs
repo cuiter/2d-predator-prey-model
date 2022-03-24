@@ -1,6 +1,5 @@
-use crate::util::{time_ns, Size};
+use crate::util::{time_ns, PRng, Size};
 use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg32;
 use std::collections::BTreeMap;
 
 pub mod params;
@@ -36,7 +35,7 @@ pub mod utils {
     use super::*;
 
     /// Returns the count and specie ID of the most occurring neighboring species.
-    fn most_occurring_neighbor(neighbors: &Vec<&Cell>) -> (u32, u32) {
+    fn most_occurring_neighbor(neighbors: &Vec<&Cell>, rng: &mut PRng) -> (u32, u32) {
         if neighbors.len() > 0 {
             let mut count_by_specie = BTreeMap::new();
             for neighbor in neighbors {
@@ -57,8 +56,13 @@ pub mod utils {
             let mut count_by_specie_vec: Vec<(&&u32, &u32)> = count_by_specie.iter().collect();
             count_by_specie_vec.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap()); // Sort by count descending
 
-            let specie_id = **count_by_specie_vec[0].0;
             let count = *count_by_specie_vec[0].1;
+            let most_occurring_species: Vec<u32> = count_by_specie_vec
+                .iter()
+                .filter(|specie_count| *specie_count.1 == count)
+                .map(|x| **x.0)
+                .collect();
+            let specie_id = most_occurring_species[rng.gen_range(0, most_occurring_species.len())];
 
             (count, specie_id)
         } else {
@@ -71,6 +75,7 @@ pub mod utils {
         cell: &Cell,
         neighbors: &Vec<Cell>,
         params: &ModelParams,
+        rng: &mut PRng,
     ) -> (u32, u32) {
         let predating_neighbors: Vec<&Cell> = neighbors
             .iter()
@@ -86,7 +91,7 @@ pub mod utils {
             .collect();
         let n_predators = predating_neighbors.len() as u32;
 
-        let (_, dominant_predator_id) = most_occurring_neighbor(&predating_neighbors);
+        let (_, dominant_predator_id) = most_occurring_neighbor(&predating_neighbors, rng);
 
         (n_predators, dominant_predator_id)
     }
@@ -96,6 +101,7 @@ pub mod utils {
         cell: &Cell,
         neighbors: &Vec<Cell>,
         params: &ModelParams,
+        rng: &mut PRng,
     ) -> (u32, u32) {
         match cell {
             &Cell::Animal(specie_id) => {
@@ -110,7 +116,7 @@ pub mod utils {
                     .collect();
                 let n_prey = prey_neighbors.len() as u32;
 
-                let (_, dominant_prey_id) = most_occurring_neighbor(&prey_neighbors);
+                let (_, dominant_prey_id) = most_occurring_neighbor(&prey_neighbors, rng);
 
                 (n_prey, dominant_prey_id)
             }
@@ -119,7 +125,11 @@ pub mod utils {
     }
 
     /// Returns the amount of same-specie herbivores in the neighborhood and the specie id of the most prevalent herbivore.
-    pub fn get_neighbor_herbivores(neighbors: &Vec<Cell>, params: &ModelParams) -> (u32, u32) {
+    pub fn get_neighbor_herbivores(
+        neighbors: &Vec<Cell>,
+        params: &ModelParams,
+        rng: &mut PRng,
+    ) -> (u32, u32) {
         let herbivore_neighbors: Vec<&Cell> = neighbors
             .iter()
             .filter(|neighbor| match neighbor {
@@ -128,7 +138,7 @@ pub mod utils {
             })
             .collect();
 
-        most_occurring_neighbor(&herbivore_neighbors)
+        most_occurring_neighbor(&herbivore_neighbors, rng)
     }
 }
 pub use utils::*;

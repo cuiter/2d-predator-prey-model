@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+// Pseudo-random number generator used in the model.
+pub use rand_pcg::Pcg64Mcg as PRng;
+
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct Size {
     pub w: u32,

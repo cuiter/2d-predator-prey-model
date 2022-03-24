@@ -1,6 +1,5 @@
-use crate::util::{time_ns, Size};
+use crate::util::{time_ns, PRng, Size};
 use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg32;
 
 use crate::models::params::{ModelParams, ModelType};
 
@@ -32,7 +31,7 @@ impl Grid {
         }
     }
 
-    pub fn populate(&mut self, params: &ModelParams, rng: &mut Pcg32) {
+    pub fn populate(&mut self, params: &ModelParams, rng: &mut PRng) {
         let specie_ids = params.specie_ids();
 
         for (specie_name, specie_params) in params.species.iter() {

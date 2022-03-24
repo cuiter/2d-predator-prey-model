@@ -1,17 +1,17 @@
 use crate::models::*;
+use crate::util::PRng;
 use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg32;
 
 pub struct SimpleModel {
     grid: Grid,
     params: ModelParams,
-    rng: Pcg32,
+    rng: PRng,
 }
 
 impl SimpleModel {
     pub fn new(params: ModelParams) -> SimpleModel {
         let grid = Grid::new(params.grid_size);
-        let rng = Pcg32::seed_from_u64(params.random_seed.unwrap_or(time_ns() as u64));
+        let rng = PRng::seed_from_u64(params.random_seed.unwrap_or(time_ns() as u64));
 
         SimpleModel { grid, params, rng }
     }
@@ -19,7 +19,7 @@ impl SimpleModel {
     /// Determines the next state of the given cell, given the current state and the cell's surrounding neighbors.
     fn next_cell_state(&mut self, cell: &Cell, neighbors: &Vec<Cell>) -> Cell {
         let (n_predators, dominant_predator_id) =
-            get_neighbor_predators(cell, neighbors, &self.params);
+            get_neighbor_predators(cell, neighbors, &self.params, &mut self.rng);
 
         match cell {
             &Cell::Animal(specie_id) => {
@@ -63,7 +63,7 @@ impl SimpleModel {
             }
             &Cell::Empty => {
                 let (n_same_herbivores, dominant_herbivore_id) =
-                    get_neighbor_herbivores(neighbors, &self.params);
+                    get_neighbor_herbivores(neighbors, &self.params, &mut self.rng);
 
                 if n_same_herbivores == 0 || n_predators > 0 {
                     // Cell remains empty

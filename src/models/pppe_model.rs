@@ -1,18 +1,18 @@
 use crate::models::*;
+use crate::util::PRng;
 use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg32;
 use std::collections::BTreeMap;
 
 pub struct PPPEModel {
     grid: Grid,
     params: ModelParams,
-    rng: Pcg32,
+    rng: PRng,
 }
 
 impl PPPEModel {
     pub fn new(params: ModelParams) -> PPPEModel {
         let grid = Grid::new(params.grid_size);
-        let rng = Pcg32::seed_from_u64(params.random_seed.unwrap_or(time_ns() as u64));
+        let rng = PRng::seed_from_u64(params.random_seed.unwrap_or(time_ns() as u64));
 
         PPPEModel { grid, params, rng }
     }
@@ -24,7 +24,8 @@ impl PPPEModel {
     ) -> (Cell, bool) {
         match cell {
             Cell::Animal(specie_id) => {
-                let (n_predators, _) = get_neighbor_predators(cell, neighbors, &self.params);
+                let (n_predators, _) =
+                    get_neighbor_predators(cell, neighbors, &self.params, &mut self.rng);
                 if self.params.is_specie_herbivore(*specie_id) || n_predators > 0 {
                     // Cell is prey
                     let random = self.rng.gen::<f32>();
@@ -41,7 +42,7 @@ impl PPPEModel {
                     // Cell is predator
                     let random = self.rng.gen::<f32>();
                     let (n_prey, most_occurring_prey_id) =
-                        get_neighbor_prey(cell, neighbors, &self.params);
+                        get_neighbor_prey(cell, neighbors, &self.params, &mut self.rng);
                     let prey_death_rate = if n_prey == 0 {
                         0.0
                     } else {
@@ -91,7 +92,8 @@ impl PPPEModel {
     ) -> Cell {
         match cell {
             Cell::Animal(specie_id) => {
-                let (n_predators, _) = get_neighbor_predators(cell, neighbors, &self.params);
+                let (n_predators, _) =
+                    get_neighbor_predators(cell, neighbors, &self.params, &mut self.rng);
                 if self.params.is_specie_herbivore(*specie_id) || n_predators > 0 {
                     // Cell is herbivore, stays herbivore
                     Cell::Animal(*specie_id)
@@ -113,9 +115,9 @@ impl PPPEModel {
                 if !fed_or_killed {
                     // Cell was already empty
                     let (n_herbivores, most_occurring_herbivore_id) =
-                        get_neighbor_herbivores(neighbors, &self.params);
+                        get_neighbor_herbivores(neighbors, &self.params, &mut self.rng);
                     let (n_predators, most_occurring_predator_id) =
-                        get_neighbor_predators(cell, neighbors, &self.params);
+                        get_neighbor_predators(cell, neighbors, &self.params, &mut self.rng);
                     if n_herbivores == 0 || n_predators > 0 {
                         // Cell remains empty
                         Cell::Empty
@@ -142,8 +144,12 @@ impl PPPEModel {
                         }
                     }
 
-                    let (n_fed_predators, most_occurring_predator_id) =
-                        get_neighbor_predators(cell, &fed_or_killed_neighbors, &self.params);
+                    let (n_fed_predators, most_occurring_predator_id) = get_neighbor_predators(
+                        cell,
+                        &fed_or_killed_neighbors,
+                        &self.params,
+                        &mut self.rng,
+                    );
                     let predator_birth_rate = if n_fed_predators == 0 {
                         0.0
                     } else {
@@ -248,9 +254,9 @@ impl PPPEModel {
                 match cell {
                     Cell::Animal(specie_id) => {
                         let (n_predators, most_occurring_predator_id) =
-                            get_neighbor_predators(&cell, &neighbors, &self.params);
+                            get_neighbor_predators(&cell, &neighbors, &self.params, &mut self.rng);
                         let (n_prey, most_occurring_prey_id) =
-                            get_neighbor_prey(&cell, &neighbors, &self.params);
+                            get_neighbor_prey(&cell, &neighbors, &self.params, &mut self.rng);
 
                         let mut intent = None;
 
@@ -266,6 +272,7 @@ impl PPPEModel {
                                                 &cell,
                                                 &neighbors_by_quatrant[quadrant],
                                                 &self.params,
+                                                &mut self.rng,
                                             )
                                             .0,
                                         )
@@ -302,6 +309,7 @@ impl PPPEModel {
                                             &cell,
                                             &neighbors_by_quatrant[quadrant],
                                             &self.params,
+                                            &mut self.rng,
                                         )
                                         .0,
                                     )

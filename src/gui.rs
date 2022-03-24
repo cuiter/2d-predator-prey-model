@@ -172,6 +172,5 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
 
         draw_model(&mut canvas, &model, &view);
         canvas.present();
-
     }
 }
