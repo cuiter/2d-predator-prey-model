@@ -10,6 +10,7 @@ struct TimeController {
     ticks_per_second: f32,
     running: bool,
     leftover_seconds: f32,
+    ticks_elapsed: usize,
 }
 
 impl TimeController {
@@ -18,6 +19,7 @@ impl TimeController {
             ticks_per_second: 1.0,
             running: true,
             leftover_seconds: 0.0,
+            ticks_elapsed: 0,
         }
     }
 
@@ -38,6 +40,11 @@ impl TimeController {
         }
     }
 
+    /// Called when a tick has been elapsed
+    pub fn tick_elapsed(&mut self) {
+        self.ticks_elapsed += 1;
+    }
+
     pub fn toggle_paused(&mut self) {
         self.running = !self.running;
 
@@ -49,16 +56,26 @@ impl TimeController {
     }
 
     pub fn increase_speed(&mut self) {
-        self.ticks_per_second *= 2.0;
+        if (self.ticks_per_second < MAX_TICKS_PER_SECOND)
+        {
+            self.ticks_per_second *= 2.0;
+        }
     }
 
     pub fn decrease_speed(&mut self) {
-        self.ticks_per_second /= 2.0;
+        if (self.ticks_per_second > MIN_TICKS_PER_SECOND)
+        {
+            self.ticks_per_second /= 2.0;
+        }
     }
+
+    pub fn get_ticks_elapsed(&self) -> usize { self.ticks_elapsed }
 }
 
 const ENABLE_VSYNC: bool = true;
 const WINDOW_SIZE: Size = Size::new(800, 600);
+const MIN_TICKS_PER_SECOND: f32 = 0.25;
+const MAX_TICKS_PER_SECOND: f32 = 134217730f32;
 // Number of seconds (target) for processing model behavior per frame, before continuing on.
 const MODEL_TIME_PER_FRAME_THRESHOLD_SEC: f32 = 0.025;
 
@@ -159,9 +176,9 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
         let ticks = time_controller.tick(seconds_elapsed);
         for _ in 0..ticks {
             model.tick();
-            ticks_elapsed += 1;
+            time_controller.tick_elapsed();
             if let Some(stats) = &mut stats {
-                stats.collect(ticks_elapsed, model.get_grid(), model.get_params());
+                stats.collect(time_controller.get_ticks_elapsed(), model.get_grid(), model.get_params());
             }
 
             if (time_ns() - cur_nano_time) as f32 / 1e9f32 > MODEL_TIME_PER_FRAME_THRESHOLD_SEC {
