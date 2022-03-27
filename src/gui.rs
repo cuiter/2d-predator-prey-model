@@ -10,21 +10,19 @@ struct TimeController {
     ticks_per_second: f32,
     running: bool,
     leftover_seconds: f32,
-    ticks_elapsed: usize,
 }
 
 impl TimeController {
-    pub fn default() -> TimeController {
+    pub fn new() -> TimeController {
         TimeController {
             ticks_per_second: 1.0,
             running: true,
             leftover_seconds: 0.0,
-            ticks_elapsed: 0,
         }
     }
 
     /// Updates the time and returns the number of times model.tick() should be called in this frame.
-    pub fn tick(&mut self, seconds_elapsed: f32) -> u32 {
+    pub fn update(&mut self, seconds_elapsed: f32) -> u32 {
         if self.running {
             self.leftover_seconds += seconds_elapsed;
 
@@ -40,11 +38,6 @@ impl TimeController {
         }
     }
 
-    /// Called when a tick has been elapsed
-    pub fn tick_elapsed(&mut self) {
-        self.ticks_elapsed += 1;
-    }
-
     pub fn toggle_paused(&mut self) {
         self.running = !self.running;
 
@@ -56,20 +49,64 @@ impl TimeController {
     }
 
     pub fn increase_speed(&mut self) {
-        if (self.ticks_per_second < MAX_TICKS_PER_SECOND)
-        {
+        if (self.ticks_per_second < MAX_TICKS_PER_SECOND) {
             self.ticks_per_second *= 2.0;
+            println!("target ticks per second: {}", self.ticks_per_second);
         }
     }
 
     pub fn decrease_speed(&mut self) {
-        if (self.ticks_per_second > MIN_TICKS_PER_SECOND)
-        {
+        if (self.ticks_per_second > MIN_TICKS_PER_SECOND) {
             self.ticks_per_second /= 2.0;
+            println!("target ticks per second: {}", self.ticks_per_second);
         }
     }
 
-    pub fn get_ticks_elapsed(&self) -> usize { self.ticks_elapsed }
+    pub fn is_running(&self) -> bool {
+        self.running
+    }
+}
+
+/// Records the ticks that have been elapsed and prints the actual simulation speed every second.
+struct TickRecorder {
+    total_ticks: usize,
+    leftover_seconds: f32,
+    elapsed_ticks: usize,
+}
+
+impl TickRecorder {
+    pub fn new() -> TickRecorder {
+        TickRecorder {
+            total_ticks: 0,
+            leftover_seconds: 0.0,
+            elapsed_ticks: 0,
+        }
+    }
+
+    pub fn update(&mut self, seconds_elapsed: f32) {
+        if self.leftover_seconds - seconds_elapsed < 0.0 {
+            if self.elapsed_ticks > 0 {
+                println!("ticks per second: {}", self.elapsed_ticks);
+            }
+            self.elapsed_ticks = 0;
+            self.leftover_seconds += 1.0;
+        }
+        self.leftover_seconds -= seconds_elapsed;
+    }
+
+    pub fn reset(&mut self) {
+        self.leftover_seconds = 1.0;
+        self.elapsed_ticks = 0;
+    }
+
+    pub fn tick(&mut self) {
+        self.total_ticks += 1;
+        self.elapsed_ticks += 1;
+    }
+
+    pub fn get_total(&self) -> usize {
+        self.total_ticks
+    }
 }
 
 const ENABLE_VSYNC: bool = true;
@@ -88,7 +125,8 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
     let mut stats = stats_path.map(|path| Stats::new(path));
     let mut ticks_elapsed = 0;
 
-    let mut time_controller = TimeController::default();
+    let mut time_controller = TimeController::new();
+    let mut tick_recorder = TickRecorder::new();
     let mut view = View::default(model.get_grid().get_size());
 
     let sdl_context = sdl2::init().unwrap();
@@ -141,6 +179,7 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
                                     stats.reset();
                                 }
                                 ticks_elapsed = 0;
+                                println!("model reset");
                             }
                             Err(error) => {
                                 println!("Failed to load parameters: {}", error);
@@ -150,8 +189,10 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
                         time_controller.toggle_paused();
                     } else if scancode == Scancode::Comma {
                         time_controller.decrease_speed();
+                        tick_recorder.reset();
                     } else if scancode == Scancode::Period {
                         time_controller.increase_speed();
+                        tick_recorder.reset();
                     }
                 }
 
@@ -173,12 +214,19 @@ pub fn main_loop(config_path: &str, stats_path: Option<&str>) {
         // Clamp the elapsed time in this frame between 1 nanosecond and 1 second to prevent divide by zero and runaway.
         let seconds_elapsed: f32 = raw_seconds_elapsed.clamp(1e-9f32, 1.0);
 
-        let ticks = time_controller.tick(seconds_elapsed);
-        for _ in 0..ticks {
+        let target_ticks = time_controller.update(seconds_elapsed);
+        if time_controller.is_running() {
+            tick_recorder.update(seconds_elapsed);
+        }
+        for _ in 0..target_ticks {
             model.tick();
-            time_controller.tick_elapsed();
+            tick_recorder.tick();
             if let Some(stats) = &mut stats {
-                stats.collect(time_controller.get_ticks_elapsed(), model.get_grid(), model.get_params());
+                stats.collect(
+                    tick_recorder.get_total(),
+                    model.get_grid(),
+                    model.get_params(),
+                );
             }
 
             if (time_ns() - cur_nano_time) as f32 / 1e9f32 > MODEL_TIME_PER_FRAME_THRESHOLD_SEC {

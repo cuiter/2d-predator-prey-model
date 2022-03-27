@@ -403,8 +403,6 @@ impl Model for PPPEModel {
             self.reproduction_phase(&cells_after_feed, &cells_fed_or_killed);
         let cells_after_movement = self.movement_phase(&cells_after_reproduction);
 
-        println!("tick");
-
         self.grid = cells_after_movement;
     }
 

@@ -116,8 +116,6 @@ impl Model for SimpleModel {
             }
         }
 
-        println!("tick");
-
         self.grid = new_cells;
     }
 
