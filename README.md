@@ -1,58 +1,63 @@
-# Onderzoeksmethoden
+# 2d-predator-prey-model
 
-Source code and appendices for the course Onderzoeksmethoden voor de Informatica (B3OMI) at the UU
+A cellular automata-based model that simulates the interactions between species
+in a food web, based on two models described in Dirk J. Human's 2014 paper
+"Modelling predator-prey interactions with cellular automata".
 
-# Building and running
+Authored by Casper Uiterwijk and Martijn Drenth.
 
-Install the following dependencies:
+![](assets/screenshot.png)
 
-- Rust compiler and `cargo` (https://www.rust-lang.org/)
-- A C toolchain (e.g. MSVC or MinGW on Windows, `build-essential` on Ubuntu)
-- SDL2 (https://github.com/Rust-SDL2/rust-sdl2#windows-mingw)
+# Building
 
-This program uses a config file that specifies the model parameters (see the `sample-configs/` directory),
-and outputs a CSV file containing model statistics. This can then be read by e.g. Excel for futher processing.
+This program is written in Rust, and uses the following external dependencies:
 
-Run the following command at the project root:  
-`cargo run --release -- <config file> [stats file]`
+- A C toolchain
+- The SDL2 cross-platform development library
 
-The controls are explained in the program's standard output.
+To install the Rust toolchain and dependencies:
 
-# Screenshots
+Ubuntu: `sudo apt install cargo build-essential libsdl2-dev`  
+NixOS: `nix-shell -p cargo SDL2`  
+Windows:
 
-![](design/screenshot.png)
+- Rust: https://www.rust-lang.org/
+- C toolchain: https://sourceforge.net/projects/mingw/ or https://visualstudio.microsoft.com/downloads/ (MSVC)
+- SDL2: https://github.com/Rust-SDL2/rust-sdl2#windows-mingw
 
-# Design
+# Usage
 
-The goal of the course is to find a problem that can be expressed in relatively
-simple terms, use a model to simulate the problem, and be able to say something
-interesting about its results.
+Running the program can be done by executing the following command at the project root:  
+`cargo run --release`
 
-Because the exact problem definition is not fixed yet, the main goal of the
-design is to provide a platform with which to experiment and compare different
-solutions.
+It is possible to specify a few additional arguments by running:
 
-## Problem definition
+`cargo run --release -- [config file] [stats file]`
 
-![](design/problem-definition.png)
+```
+[config file] (optional) - Path to the config file that specifies the model parameters (default: sample-configs/simple-fish.json)
+[stats file] (optional) - If provided, path to write population statistics in CSV format.
+```
 
-## Requirements
+Controls such as zooming in/out and pausing/resuming are explained in the program's standard output.
 
-The goal of this program is to do the following:
+# Configuration
 
-- Provide a platform for building and simulating a grid-based model of cells.
-- Collect statistics from the simulated model in order to discover useful results.
+Model parameters can be configured via a JSON config file. This file describes which species exist and the predator-prey relationships between species.  
+For an example config file, see the `sample-configs/` directory.
 
-By splitting these goals up into requirements, the following list can be formed:
+# Videos
 
-Must:
+![](assets/simple-model.gif)  
+_Simple model with three species (one herbivore, one eating the herbivore, one eating both)_
 
-- Provide a platform for building and simulating a grid-based model
-- Allow the user to specify model parameters at the beginning of the simulation
-- Show the current state of the model in a graphical user interface
-- Allow the user to control the time aspect of the model at runtime (play/pause/speed)
-- Collect and write model statistics to a file (including #cells per cell type)
+![](assets/pppe-model.gif)  
+_PPPE model with three species (same as above)_
 
-## Component diagram
+# References
 
-![](design/component-diagram.png)
+Human, D. J. (2014). _Modelling predator-prey interactions with cellular automata_. From <http://www.vuuren.co.za/Theses/Project2.pdf>
+
+# Feedback
+
+If you have any ideas on how this model could be improved, feel free to create an issue or contact me by e-mail (see my Github profile).
