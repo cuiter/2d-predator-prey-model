@@ -6,16 +6,18 @@ mod util;
 
 extern crate sdl2;
 
+const DEFAULT_CONFIG_PATH: &str = "sample-configs/simple-fish.json";
+
 fn main() {
     let arguments = std::env::args().collect::<Vec<String>>();
-    if arguments.len() < 2 {
+    if arguments.len() < 1 {
         println!(
-            "Usage: {} <path/to/config.json> [path/to/stats.csv]",
+            "Usage: {} [path/to/config.json] [path/to/stats.csv]",
             arguments[0]
         );
         std::process::exit(1);
     }
-    let config_path = &arguments[1];
+    let config_path = if arguments.len() >= 2 { &arguments[1] } else { DEFAULT_CONFIG_PATH };
     let stats_path = if arguments.len() >= 3 {
         Some(arguments[2].as_str())
     } else {
